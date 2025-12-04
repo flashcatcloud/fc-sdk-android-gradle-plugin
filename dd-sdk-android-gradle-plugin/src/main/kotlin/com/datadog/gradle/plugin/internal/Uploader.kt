@@ -6,7 +6,7 @@
 
 package com.datadog.gradle.plugin.internal
 
-import com.datadog.gradle.plugin.DatadogSite
+import com.datadog.gradle.plugin.FlashcatSite
 import com.datadog.gradle.plugin.RepositoryInfo
 import java.io.File
 
@@ -50,7 +50,7 @@ internal interface Uploader {
 
     @Suppress("LongParameterList")
     fun upload(
-        site: DatadogSite,
+        site: FlashcatSite,
         fileInfo: UploadFileInfo,
         repositoryFile: File?,
         apiKey: String,

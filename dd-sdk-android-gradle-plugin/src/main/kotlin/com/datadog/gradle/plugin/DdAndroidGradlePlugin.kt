@@ -234,8 +234,8 @@ class DdAndroidGradlePlugin @Inject constructor(
                 uploadTask.buildId.set(buildIdGenerationTask.lazyBuildIdProvider(providerFactory))
                 uploadTask.mappingFilePackagesAliases = extensionConfiguration.mappingFilePackageAliases
                 uploadTask.mappingFileTrimIndents = extensionConfiguration.mappingFileTrimIndents
-                if (!extensionConfiguration.ignoreDatadogCiFileConfig) {
-                    uploadTask.datadogCiFile = TaskUtils.findDatadogCiFile(target.projectDir)
+                if (!extensionConfiguration.ignoreFlashcatCiFileConfig) {
+                    uploadTask.flashcatCiFile = TaskUtils.findFlashcatCiFile(target.projectDir)
                 }
 
                 uploadTask.repositoryFile = TaskUtils.resolveDatadogRepositoryFile(target)
@@ -455,15 +455,15 @@ class DdAndroidGradlePlugin @Inject constructor(
 
         private const val DD_PLUGIN_MAVEN_COORDINATES = "com.datadoghq:dd-sdk-android-gradle-plugin"
 
-        internal const val DD_API_KEY = "DD_API_KEY"
+        internal const val DD_API_KEY = "FC_API_KEY"
 
-        internal const val DATADOG_API_KEY = "DATADOG_API_KEY"
+        internal const val DATADOG_API_KEY = "FLASHCAT_API_KEY"
 
-        internal const val DATADOG_TASK_GROUP = "datadog"
+        internal const val DATADOG_TASK_GROUP = "flashcat"
 
         internal val LOGGER = Logging.getLogger("DdAndroidGradlePlugin")
 
-        private const val EXT_NAME = "datadog"
+        private const val EXT_NAME = "flashcat"
 
         internal const val UPLOAD_TASK_NAME = "uploadMapping"
 

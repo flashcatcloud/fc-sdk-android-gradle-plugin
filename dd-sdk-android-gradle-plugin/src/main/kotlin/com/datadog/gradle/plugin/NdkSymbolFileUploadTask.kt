@@ -121,7 +121,7 @@ internal abstract class NdkSymbolFileUploadTask @Inject constructor(
 
                     variant.bindWith(task)
 
-                    task.datadogCiFile = TaskUtils.findDatadogCiFile(project.rootDir)
+                    task.flashcatCiFile = TaskUtils.findFlashcatCiFile(project.rootDir)
                     task.repositoryFile = TaskUtils.resolveDatadogRepositoryFile(project)
                     extensionConfiguration.additionalSymbolFilesLocations?.let {
                         task.searchDirectories.from(it.toTypedArray())

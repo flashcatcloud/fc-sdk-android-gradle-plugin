@@ -88,7 +88,7 @@ abstract class FileUploadTask @Inject constructor(
     abstract val serviceName: Property<String>
 
     /**
-     * The Datadog site to upload to (one of "US1", "EU1", "US1_FED").
+     * The Flashcat site to upload to (one of "CN", "STAGING").
      */
     @get:Input
     var site: String = ""
@@ -106,11 +106,11 @@ abstract class FileUploadTask @Inject constructor(
     abstract val buildId: Property<String>
 
     /**
-     * datadog-ci.json file, if found or applicable for the particular task.
+     * flashcat-ci.json file, if found or applicable for the particular task.
      */
     @Optional
     @get:InputFile
-    var datadogCiFile: File? = null
+    var flashcatCiFile: File? = null
 
     /**
      * The sourceSet root folders.
@@ -136,8 +136,8 @@ abstract class FileUploadTask @Inject constructor(
     @TaskAction
     @Suppress("TooGenericExceptionCaught", "LongMethod")
     fun applyTask() {
-        datadogCiFile?.let {
-            applyDatadogCiConfig(it)
+        flashcatCiFile?.let {
+            applyFlashcatCiConfig(it)
         }
         applySiteFromEnvironment()
         validateConfiguration()
@@ -172,7 +172,7 @@ abstract class FileUploadTask @Inject constructor(
             generateRepositoryFile(repositories)
         }
 
-        val site = DatadogSite.valueOf(site)
+        val site = FlashcatSite.valueOf(site)
         val caughtErrors = mutableListOf<Exception>()
 
         for (mappingFile in mappingFiles) {
@@ -244,65 +244,65 @@ abstract class FileUploadTask @Inject constructor(
     // region Private
 
     private fun applySiteFromEnvironment() {
-        val environmentSite = System.getenv(DATADOG_SITE)
+        val environmentSite = System.getenv(FLASHCAT_SITE)
         if (!environmentSite.isNullOrEmpty()) {
             if (this.site.isNotEmpty()) {
                 DdAndroidGradlePlugin.LOGGER.info(
-                    "Site property found as DATADOG_SITE env variable, but it will be ignored," +
+                    "Site property found as FLASHCAT_SITE env variable, but it will be ignored," +
                         " because also an explicit one was provided in extension."
                 )
                 return
             }
-            val site = DatadogSite.fromDomain(environmentSite)
+            val site = FlashcatSite.fromHostName(environmentSite)
             if (site == null) {
-                DdAndroidGradlePlugin.LOGGER.warn("Unknown Datadog domain provided: $environmentSite, ignoring it.")
+                DdAndroidGradlePlugin.LOGGER.warn("Unknown Flashcat hostname provided: $environmentSite, ignoring it.")
             } else {
-                DdAndroidGradlePlugin.LOGGER.info("Site property found in Datadog CI config file, using it.")
+                DdAndroidGradlePlugin.LOGGER.info("Site property found in Flashcat CI config file, using it.")
                 this.site = site.name
             }
         }
     }
 
-    private fun applyDatadogCiConfig(datadogCiFile: File) {
+    private fun applyFlashcatCiConfig(flashcatCiFile: File) {
         try {
-            val config = JSONObject(datadogCiFile.readText())
-            applyApiKeyFromDatadogCiConfig(config)
-            applySiteFromDatadogCiConfig(config)
+            val config = JSONObject(flashcatCiFile.readText())
+            applyApiKeyFromFlashcatCiConfig(config)
+            applySiteFromFlashcatCiConfig(config)
         } catch (e: JSONException) {
-            DdAndroidGradlePlugin.LOGGER.error("Failed to parse Datadog CI config file.", e)
+            DdAndroidGradlePlugin.LOGGER.error("Failed to parse Flashcat CI config file.", e)
         }
     }
 
-    private fun applyApiKeyFromDatadogCiConfig(config: JSONObject) {
-        val apiKey = config.optString(DATADOG_CI_API_KEY_PROPERTY, null)
+    private fun applyApiKeyFromFlashcatCiConfig(config: JSONObject) {
+        val apiKey = config.optString(FLASHCAT_CI_API_KEY_PROPERTY, null)
         if (!apiKey.isNullOrEmpty()) {
             if (this.apiKeySource == ApiKeySource.GRADLE_PROPERTY) {
                 DdAndroidGradlePlugin.LOGGER.info(
-                    "API key found in Datadog CI config file, but it will be ignored," +
+                    "API key found in Flashcat CI config file, but it will be ignored," +
                         " because also an explicit one was provided as a gradle property."
                 )
             } else {
-                DdAndroidGradlePlugin.LOGGER.info("API key found in Datadog CI config file, using it.")
+                DdAndroidGradlePlugin.LOGGER.info("API key found in Flashcat CI config file, using it.")
                 this.apiKey = apiKey
-                this.apiKeySource = ApiKeySource.DATADOG_CI_CONFIG_FILE
+                this.apiKeySource = ApiKeySource.FLASHCAT_CI_CONFIG_FILE
             }
         }
     }
 
-    private fun applySiteFromDatadogCiConfig(config: JSONObject) {
-        val siteAsDomain = config.optString(DATADOG_CI_SITE_PROPERTY, null)
-        if (!siteAsDomain.isNullOrEmpty()) {
+    private fun applySiteFromFlashcatCiConfig(config: JSONObject) {
+        val siteAsHostName = config.optString(FLASHCAT_CI_SITE_PROPERTY, null)
+        if (!siteAsHostName.isNullOrEmpty()) {
             if (this.site.isNotEmpty()) {
                 DdAndroidGradlePlugin.LOGGER.info(
-                    "Site property found in Datadog CI config file, but it will be ignored," +
+                    "Site property found in Flashcat CI config file, but it will be ignored," +
                         " because also an explicit one was provided in extension."
                 )
             } else {
-                val site = DatadogSite.fromDomain(siteAsDomain)
+                val site = FlashcatSite.fromHostName(siteAsHostName)
                 if (site == null) {
-                    DdAndroidGradlePlugin.LOGGER.warn("Unknown Datadog domain provided: $siteAsDomain, ignoring it.")
+                    DdAndroidGradlePlugin.LOGGER.warn("Unknown Flashcat hostname provided: $siteAsHostName, ignoring it.")
                 } else {
-                    DdAndroidGradlePlugin.LOGGER.info("Site property found in Datadog CI config file, using it.")
+                    DdAndroidGradlePlugin.LOGGER.info("Site property found in Flashcat CI config file, using it.")
                     this.site = site.name
                 }
             }
@@ -314,9 +314,9 @@ abstract class FileUploadTask @Inject constructor(
         check(apiKey.isNotBlank()) { API_KEY_MISSING_ERROR }
 
         if (site.isBlank()) {
-            site = DatadogSite.US1.name
+            site = FlashcatSite.CN.name
         } else {
-            val validSiteIds = DatadogSite.validIds
+            val validSiteIds = FlashcatSite.validIds
             check(site in validSiteIds) {
                 "You need to provide a valid site (one of ${validSiteIds.joinToString()})"
             }
@@ -348,20 +348,20 @@ abstract class FileUploadTask @Inject constructor(
         private const val REPOSITORY_FILE_VERSION = 1
         private const val INDENT = 4
 
-        private const val DATADOG_CI_API_KEY_PROPERTY = "apiKey"
-        private const val DATADOG_CI_SITE_PROPERTY = "datadogSite"
-        const val DATADOG_SITE = "DATADOG_SITE"
+        private const val FLASHCAT_CI_API_KEY_PROPERTY = "apiKey"
+        private const val FLASHCAT_CI_SITE_PROPERTY = "flashcatSite"
+        const val FLASHCAT_SITE = "FLASHCAT_SITE"
 
         internal val LOGGER = Logging.getLogger("DdFileUploadTask")
 
         const val DISABLE_GZIP_GRADLE_PROPERTY = "dd-disable-gzip"
         const val EMULATE_UPLOAD_NETWORK_CALL = "dd-emulate-upload-call"
 
-        const val API_KEY_MISSING_ERROR = "Make sure you define an API KEY to upload your mapping files to Datadog. " +
-            "Create a DD_API_KEY or DATADOG_API_KEY environment variable, gradle" +
-            " property or define it in datadog-ci.json file."
+        const val API_KEY_MISSING_ERROR = "Make sure you define an API KEY to upload your mapping files to Flashcat. " +
+            "Create a FC_API_KEY or FLASHCAT_API_KEY environment variable, gradle" +
+            " property or define it in flashcat-ci.json file."
         const val INVALID_API_KEY_FORMAT_ERROR =
-            "DD_API_KEY provided shouldn't contain quotes or apostrophes."
+            "FC_API_KEY provided shouldn't contain quotes or apostrophes."
         const val MISSING_BUILD_ID_ERROR =
             "Build ID is missing, you need to run upload task only after APK/AAB file is generated."
     }

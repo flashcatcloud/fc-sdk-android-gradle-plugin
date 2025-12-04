@@ -1,4 +1,4 @@
-
+local-docs
 # IntelliJ
 *.iml
 .idea/

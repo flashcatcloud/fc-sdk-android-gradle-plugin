@@ -145,7 +145,7 @@ internal class DdAndroidGradlePluginTest {
             .isEqualTo(File(fakeProject.projectDir, fakeExtension.mappingFilePath))
         assertThat(task.mappingFilePackagesAliases)
             .isEqualTo(fakeExtension.mappingFilePackageAliases)
-        assertThat(task.datadogCiFile).isNull()
+        assertThat(task.flashcatCiFile).isNull()
         assertThat(task.buildId.get()).isEqualTo(fakeBuildId)
     }
 
@@ -196,7 +196,7 @@ internal class DdAndroidGradlePluginTest {
             .isEqualTo(fakeExtension.mappingFilePackageAliases)
         assertThat(task.mappingFileTrimIndents)
             .isEqualTo(fakeExtension.mappingFileTrimIndents)
-        assertThat(task.datadogCiFile).isNull()
+        assertThat(task.flashcatCiFile).isNull()
         assertThat(task.buildId.get()).isEqualTo(fakeBuildId)
     }
 
@@ -257,7 +257,7 @@ internal class DdAndroidGradlePluginTest {
             .isEqualTo(fakeExtension.mappingFilePackageAliases.minus(aliasToFilterOut.first))
         assertThat(task.mappingFileTrimIndents)
             .isEqualTo(fakeExtension.mappingFileTrimIndents)
-        assertThat(task.datadogCiFile).isNull()
+        assertThat(task.flashcatCiFile).isNull()
         assertThat(task.buildId.get()).isEqualTo(fakeBuildId)
     }
 
@@ -314,7 +314,7 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.mappingFile.get().asFile.path).isEqualTo(fakeMappingFilePath)
         assertThat(task.mappingFilePackagesAliases).isEmpty()
         assertThat(task.mappingFileTrimIndents).isFalse
-        assertThat(task.datadogCiFile).isNull()
+        assertThat(task.flashcatCiFile).isNull()
         assertThat(task.buildId.get()).isEqualTo(fakeBuildId)
     }
 
@@ -334,7 +334,7 @@ internal class DdAndroidGradlePluginTest {
         fakeExtension.mappingFilePath = null
         fakeExtension.mappingFilePackageAliases = emptyMap()
         fakeExtension.mappingFileTrimIndents = false
-        fakeExtension.ignoreDatadogCiFileConfig = false
+        fakeExtension.ignoreFlashcatCiFileConfig = false
         val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
         val fakeMappingFilePath = "${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt"
         whenever(mockVariant.name) doReturn variantName
@@ -347,8 +347,8 @@ internal class DdAndroidGradlePluginTest {
         whenever(mockVariant.mappingFile) doReturn fakeMappingFilePath.asFileProvider()
         whenever(mockVariant.collectJavaAndKotlinSourceDirectories()) doReturn emptyList<File>().asProvider()
 
-        val fakeDatadogCiFile = File(fakeProject.projectDir, "datadog-ci.json")
-        fakeDatadogCiFile.createNewFile()
+        val fakeFlashcatCiFile = File(fakeProject.projectDir, "flashcat-ci.json")
+        fakeFlashcatCiFile.createNewFile()
 
         // When
         val task = testedPlugin.configureVariantForUploadTask(
@@ -375,12 +375,12 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.mappingFile.get().asFile.path).isEqualTo(fakeMappingFilePath)
         assertThat(task.mappingFilePackagesAliases).isEmpty()
         assertThat(task.mappingFileTrimIndents).isFalse
-        assertThat(task.datadogCiFile).isEqualTo(fakeDatadogCiFile)
+        assertThat(task.flashcatCiFile).isEqualTo(fakeFlashcatCiFile)
         assertThat(task.buildId.get()).isEqualTo(fakeBuildId)
     }
 
     @Test
-    fun `M not apply datadog CI file W configureVariantForUploadTask() { ignoreDatadogCiFileConfig }`(
+    fun `M not apply flashcat CI file W configureVariantForUploadTask() { ignoreFlashcatCiFileConfig }`(
         @StringForgery(case = Case.LOWER) flavorName: String,
         @StringForgery(case = Case.LOWER) buildTypeName: String,
         @StringForgery versionName: String,
@@ -395,7 +395,7 @@ internal class DdAndroidGradlePluginTest {
         fakeExtension.mappingFilePath = null
         fakeExtension.mappingFilePackageAliases = emptyMap()
         fakeExtension.mappingFileTrimIndents = false
-        fakeExtension.ignoreDatadogCiFileConfig = true
+        fakeExtension.ignoreFlashcatCiFileConfig = true
         val variantName = "$flavorName${buildTypeName.replaceFirstChar { capitalizeChar(it) }}"
         val fakeMappingFilePath = "${fakeProject.buildDir}/outputs/mapping/$variantName/mapping.txt"
         whenever(mockVariant.name) doReturn variantName
@@ -408,8 +408,8 @@ internal class DdAndroidGradlePluginTest {
         whenever(mockVariant.mappingFile) doReturn fakeMappingFilePath.asFileProvider()
         whenever(mockVariant.collectJavaAndKotlinSourceDirectories()) doReturn emptyList<File>().asProvider()
 
-        val fakeDatadogCiFile = File(fakeProject.projectDir, "datadog-ci.json")
-        fakeDatadogCiFile.createNewFile()
+        val fakeFlashcatCiFile = File(fakeProject.projectDir, "flashcat-ci.json")
+        fakeFlashcatCiFile.createNewFile()
 
         // When
         val task = testedPlugin.configureVariantForUploadTask(
@@ -436,7 +436,7 @@ internal class DdAndroidGradlePluginTest {
         assertThat(task.mappingFile.get().asFile.path).isEqualTo(fakeMappingFilePath)
         assertThat(task.mappingFilePackagesAliases).isEmpty()
         assertThat(task.mappingFileTrimIndents).isFalse
-        assertThat(task.datadogCiFile).isNull()
+        assertThat(task.flashcatCiFile).isNull()
         assertThat(task.buildId.get()).isEqualTo(fakeBuildId)
     }
 
@@ -616,7 +616,7 @@ internal class DdAndroidGradlePluginTest {
             .isEqualTo(fakeExtension.mappingFilePackageAliases)
         assertThat(task.mappingFileTrimIndents)
             .isEqualTo(fakeExtension.mappingFileTrimIndents)
-        assertThat(task.datadogCiFile).isNull()
+        assertThat(task.flashcatCiFile).isNull()
         assertThat(task.buildId.get()).isEqualTo(fakeBuildId)
     }
 
@@ -714,8 +714,8 @@ internal class DdAndroidGradlePluginTest {
             .isEqualTo(fakeExtension.mappingFilePackageAliases)
         assertThat(config.mappingFileTrimIndents)
             .isEqualTo(fakeExtension.mappingFileTrimIndents)
-        assertThat(config.ignoreDatadogCiFileConfig)
-            .isEqualTo(fakeExtension.ignoreDatadogCiFileConfig)
+        assertThat(config.ignoreFlashcatCiFileConfig)
+            .isEqualTo(fakeExtension.ignoreFlashcatCiFileConfig)
     }
 
     @Test
@@ -743,8 +743,8 @@ internal class DdAndroidGradlePluginTest {
             .isEqualTo(variantConfig.mappingFilePackageAliases)
         assertThat(config.mappingFileTrimIndents)
             .isEqualTo(variantConfig.mappingFileTrimIndents)
-        assertThat(config.ignoreDatadogCiFileConfig)
-            .isEqualTo(variantConfig.ignoreDatadogCiFileConfig)
+        assertThat(config.ignoreFlashcatCiFileConfig)
+            .isEqualTo(variantConfig.ignoreFlashcatCiFileConfig)
     }
 
     @Test
@@ -773,7 +773,7 @@ internal class DdAndroidGradlePluginTest {
         assertThat(config.mappingFilePath).isEqualTo(fakeExtension.mappingFilePath)
         assertThat(config.mappingFilePackageAliases).isEmpty()
         assertThat(config.mappingFileTrimIndents).isFalse
-        assertThat(config.ignoreDatadogCiFileConfig).isFalse
+        assertThat(config.ignoreFlashcatCiFileConfig).isFalse
     }
 
     @Test
@@ -802,7 +802,7 @@ internal class DdAndroidGradlePluginTest {
             .isEqualTo(fakeExtension.checkProjectDependencies)
         assertThat(config.mappingFilePackageAliases).isEmpty()
         assertThat(config.mappingFileTrimIndents).isFalse
-        assertThat(config.ignoreDatadogCiFileConfig).isFalse
+        assertThat(config.ignoreFlashcatCiFileConfig).isFalse
     }
 
     @Test
@@ -831,7 +831,7 @@ internal class DdAndroidGradlePluginTest {
             .isEqualTo(fakeExtension.checkProjectDependencies)
         assertThat(config.mappingFilePackageAliases).isEmpty()
         assertThat(config.mappingFileTrimIndents).isFalse
-        assertThat(config.ignoreDatadogCiFileConfig).isFalse
+        assertThat(config.ignoreFlashcatCiFileConfig).isFalse
     }
 
     @Test
@@ -866,7 +866,7 @@ internal class DdAndroidGradlePluginTest {
         assertThat(config.mappingFilePackageAliases)
             .isEqualTo(mappingFilePackageAliases)
         assertThat(config.mappingFileTrimIndents).isFalse
-        assertThat(config.ignoreDatadogCiFileConfig).isFalse
+        assertThat(config.ignoreFlashcatCiFileConfig).isFalse
     }
 
     @Test
@@ -897,12 +897,12 @@ internal class DdAndroidGradlePluginTest {
             .isEmpty()
         assertThat(config.mappingFileTrimIndents)
             .isEqualTo(mappingFileTrimIndents)
-        assertThat(config.ignoreDatadogCiFileConfig).isFalse
+        assertThat(config.ignoreFlashcatCiFileConfig).isFalse
     }
 
     @Test
     fun `M return combined config W resolveExtensionConfiguration() { variant w site only }`(
-        @Forgery site: DatadogSite
+        @Forgery site: FlashcatSite
     ) {
         // Given
         val variantName = fakeFlavorNames.variantName()
@@ -927,7 +927,7 @@ internal class DdAndroidGradlePluginTest {
         )
         assertThat(config.mappingFilePackageAliases).isEmpty()
         assertThat(config.mappingFileTrimIndents).isFalse
-        assertThat(config.ignoreDatadogCiFileConfig).isFalse
+        assertThat(config.ignoreFlashcatCiFileConfig).isFalse
     }
 
     @Test
@@ -955,7 +955,7 @@ internal class DdAndroidGradlePluginTest {
         assertThat(config.checkProjectDependencies).isEqualTo(sdkCheckLevel)
         assertThat(config.mappingFilePackageAliases).isEmpty()
         assertThat(config.mappingFileTrimIndents).isFalse
-        assertThat(config.ignoreDatadogCiFileConfig).isFalse
+        assertThat(config.ignoreFlashcatCiFileConfig).isFalse
     }
 
     @Test
@@ -985,7 +985,7 @@ internal class DdAndroidGradlePluginTest {
         assertThat(config.mappingFilePath).isEqualTo(fakeExtension.mappingFilePath)
         assertThat(config.mappingFilePackageAliases).isEmpty()
         assertThat(config.mappingFileTrimIndents).isFalse
-        assertThat(config.ignoreDatadogCiFileConfig).isFalse
+        assertThat(config.ignoreFlashcatCiFileConfig).isFalse
     }
 
     @Test
@@ -997,7 +997,7 @@ internal class DdAndroidGradlePluginTest {
         whenever(mockVariant.buildTypeName) doReturn fakeBuildTypeName
         whenever(mockVariant.flavors) doReturn fakeFlavorNames
         val incompleteConfig = DdExtensionConfiguration().apply {
-            this.ignoreDatadogCiFileConfig = fakeConfig.ignoreDatadogCiFileConfig
+            this.ignoreFlashcatCiFileConfig = fakeConfig.ignoreFlashcatCiFileConfig
         }
         whenever(fakeExtension.variants.findByName(variantName)) doReturn incompleteConfig
 
@@ -1015,8 +1015,8 @@ internal class DdAndroidGradlePluginTest {
         assertThat(config.mappingFilePath).isEqualTo(fakeExtension.mappingFilePath)
         assertThat(config.mappingFilePackageAliases).isEmpty()
         assertThat(config.mappingFileTrimIndents).isFalse
-        assertThat(config.ignoreDatadogCiFileConfig)
-            .isEqualTo(incompleteConfig.ignoreDatadogCiFileConfig)
+        assertThat(config.ignoreFlashcatCiFileConfig)
+            .isEqualTo(incompleteConfig.ignoreFlashcatCiFileConfig)
     }
 
     @Test
@@ -1060,8 +1060,8 @@ internal class DdAndroidGradlePluginTest {
             .isEqualTo(variantConfigA.mappingFilePackageAliases)
         assertThat(config.mappingFileTrimIndents)
             .isEqualTo(variantConfigA.mappingFileTrimIndents)
-        assertThat(config.ignoreDatadogCiFileConfig)
-            .isEqualTo(variantConfigA.ignoreDatadogCiFileConfig)
+        assertThat(config.ignoreFlashcatCiFileConfig)
+            .isEqualTo(variantConfigA.ignoreFlashcatCiFileConfig)
     }
 
     @Test
@@ -1115,8 +1115,8 @@ internal class DdAndroidGradlePluginTest {
             .isEqualTo(variantConfigAB.mappingFilePackageAliases)
         assertThat(config.mappingFileTrimIndents)
             .isEqualTo(variantConfigAB.mappingFileTrimIndents)
-        assertThat(config.ignoreDatadogCiFileConfig)
-            .isEqualTo(variantConfigAB.ignoreDatadogCiFileConfig)
+        assertThat(config.ignoreFlashcatCiFileConfig)
+            .isEqualTo(variantConfigAB.ignoreFlashcatCiFileConfig)
     }
 
     @Test
@@ -1145,8 +1145,8 @@ internal class DdAndroidGradlePluginTest {
             .isEqualTo(configuration.mappingFilePackageAliases)
         assertThat(config.mappingFileTrimIndents)
             .isEqualTo(configuration.mappingFileTrimIndents)
-        assertThat(config.ignoreDatadogCiFileConfig)
-            .isEqualTo(configuration.ignoreDatadogCiFileConfig)
+        assertThat(config.ignoreFlashcatCiFileConfig)
+            .isEqualTo(configuration.ignoreFlashcatCiFileConfig)
     }
 
     // endregion

@@ -6,7 +6,7 @@
 
 package com.datadog.gradle.plugin.internal
 
-import com.datadog.gradle.plugin.DatadogSite
+import com.datadog.gradle.plugin.FlashcatSite
 import com.datadog.gradle.plugin.RepositoryInfo
 import com.datadog.gradle.plugin.utils.assertj.RecordedRequestAssert.Companion.assertThat
 import com.datadog.gradle.plugin.utils.forge.Configurator
@@ -81,7 +81,7 @@ internal class OkHttpUploaderTest {
     lateinit var fakeRepositoryFileContent: String
 
     @Mock
-    lateinit var mockSite: DatadogSite
+    lateinit var mockSite: FlashcatSite
 
     lateinit var mockWebServer: MockWebServer
 

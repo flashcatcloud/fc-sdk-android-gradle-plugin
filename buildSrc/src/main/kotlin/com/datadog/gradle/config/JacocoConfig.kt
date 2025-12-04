@@ -31,8 +31,9 @@ fun Project.jacocoConfig() {
     jacocoTestCoverageVerification.violationRules {
         rule {
             limit {
-                // TODO increase that when coverage is better?
-                minimum = BigDecimal(0.70)
+                // Adjusted for Flashcat: core tests provide 73.7% coverage
+                // (functional tests removed as they depend on Datadog SDK)
+                minimum = BigDecimal(0.73)
             }
         }
     }

@@ -1,4 +1,25 @@
-Datadog dd-sdk-android
-Copyright 2019 Datadog, Inc.
+Flashcat Android Gradle Plugin
+Copyright 2025 Flashcat, Inc.
+
+This product is a derivative work based on Datadog's dd-sdk-android-gradle-plugin,
+which is developed at Datadog (https://www.datadoghq.com/).
+
+================================================================================
+
+Original Work:
+Datadog dd-sdk-android-gradle-plugin
+Copyright 2019-2024 Datadog, Inc.
+Source: https://github.com/DataDog/dd-sdk-android-gradle-plugin
 
 This product includes software developed at Datadog (https://www.datadoghq.com/).
+
+================================================================================
+
+Modifications by Flashcat:
+- Rebranded from Datadog to Flashcat
+- Modified site endpoints to Flashcat services
+- Updated API endpoints and configuration
+- Adapted for Flashcat platform integration
+
+All modifications are licensed under the Apache License, Version 2.0,
+the same license as the original work.
