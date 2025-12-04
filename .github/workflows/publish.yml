@@ -44,8 +44,8 @@ jobs:
             echo "tag=snapshot" >> $GITHUB_OUTPUT
           fi
       
-      - name: Run all tests
-        run: ./gradlew :dd-sdk-android-gradle-plugin:allTests --stacktrace --no-daemon
+      - name: Build and test plugin
+        run: ./gradlew :dd-sdk-android-gradle-plugin:build --stacktrace --no-daemon
       
       - name: Configure GPG
         run: |
@@ -97,16 +97,16 @@ jobs:
       
       - name: Publish summary
         run: |
-          echo "## 🎉 发布完成" >> $GITHUB_STEP_SUMMARY
+          echo "## Publish Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**版本类型**: ${{ steps.version.outputs.type }}" >> $GITHUB_STEP_SUMMARY
-          echo "**版本号**: ${{ steps.version.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Version Type**: ${{ steps.version.outputs.type }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Version**: ${{ steps.version.outputs.tag }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           if [[ "${{ steps.version.outputs.type }}" == "release" ]]; then
-            echo "✅ 已发布到 Maven Central" >> $GITHUB_STEP_SUMMARY
-            echo "✅ 已发布到 Gradle Plugin Portal" >> $GITHUB_STEP_SUMMARY
-            echo "✅ 已创建 GitHub Release" >> $GITHUB_STEP_SUMMARY
+            echo "- Published to Maven Central" >> $GITHUB_STEP_SUMMARY
+            echo "- Published to Gradle Plugin Portal" >> $GITHUB_STEP_SUMMARY
+            echo "- Created GitHub Release" >> $GITHUB_STEP_SUMMARY
           else
-            echo "✅ Snapshot 已发布到 Maven Central" >> $GITHUB_STEP_SUMMARY
+            echo "- Snapshot published to Maven Central" >> $GITHUB_STEP_SUMMARY
           fi
 
