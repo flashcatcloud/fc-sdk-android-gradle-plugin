@@ -24,7 +24,15 @@ Add the following line to your `build.gradle` file.
 
 ```groovy
 plugins {
-    id("com.datadoghq.dd-sdk-android-gradle-plugin") version "x.y.z"
+    id("com.flashcat.android-gradle-plugin") version "1.0.0"
+}
+```
+
+或在 Kotlin DSL 中：
+
+```kotlin
+plugins {
+    id("com.flashcat.android-gradle-plugin") version "1.0.0"
 }
 ```
 

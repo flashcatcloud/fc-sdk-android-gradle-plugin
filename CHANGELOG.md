@@ -1,4 +1,41 @@
-# 1.21.0 / 2025-10-02
+# 1.0.0 / 2025-12-04 (Flashcat Release)
+
+**First Flashcat Release**
+
+This is the first official release forked from Datadog dd-sdk-android-gradle-plugin v1.21.0 and adapted for the Flashcat platform.
+
+### New Features
+* [FEATURE] Support uploading mapping files to Flashcat platform
+* [FEATURE] Support uploading NDK symbol files to Flashcat platform
+* [FEATURE] Support Flashcat CN and STAGING sites
+* [FEATURE] Support `flashcat-ci.json` configuration file
+* [FEATURE] Support `FC_API_KEY` and `FLASHCAT_API_KEY` environment variables
+
+### Breaking Changes
+* [CHANGE] Extension configuration changed from `datadog {}` to `flashcat {}`
+* [CHANGE] Plugin ID changed from `com.datadoghq.dd-sdk-android-gradle-plugin` to `com.flashcat.android-gradle-plugin`
+* [CHANGE] Maven coordinates changed from `com.datadoghq` to `cloud.flashcat`
+* [CHANGE] Site enum changed from `DatadogSite` to `FlashcatSite`
+
+### Configuration Changes
+* CI configuration file keeps `datadog-ci.json` name but uses `flashcatSite` field
+* Environment variable priority: `FC_API_KEY` > `FLASHCAT_API_KEY` > `DD_API_KEY` > `DATADOG_API_KEY`
+* Site configuration: `CN` (browser.flashcat.cloud) and `STAGING` (jira.flashcat.cloud)
+
+### Links
+* GitHub: https://github.com/flashcatcloud/fc-sdk-android-gradle-plugin
+* Documentation: https://docs.flashcat.cloud/zh/flashduty/rum/introduction
+* Website: https://flashcat.cloud/
+
+### License
+* Licensed under Apache License 2.0
+* Forked from Datadog dd-sdk-android-gradle-plugin
+* Original work copyright: © 2019-2024 Datadog, Inc.
+* Modifications copyright: © 2025 Flashcat, Inc.
+
+---
+
+# 1.21.0 / 2025-10-02 (Datadog Original)
 
 * [IMPROVEMENT] Unbox default type to fix Kotlin 2.2.20 breaking change. See [#440](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/449)
 * [BUGFIX] Fix Kotlin Compiler Plugin wrong jar path for Windows. See [#448](https://github.com/DataDog/dd-sdk-android-gradle-plugin/pull/448)

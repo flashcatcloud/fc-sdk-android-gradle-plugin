@@ -17,9 +17,47 @@ import org.gradle.plugins.signing.SigningExtension
 
 object MavenConfig {
 
-    val VERSION = Version(1, 22, 0, Version.Type.Snapshot)
-    const val GROUP_ID = "com.datadoghq"
+    val VERSION = determineVersion()
+    const val GROUP_ID = "cloud.flashcat"
     const val PUBLICATION = "pluginMaven"
+
+    /**
+     * Determine version based on Git ref type and branch
+     * - Tag (v*) → Release version (e.g., 1.0.0)
+     * - publish branch → Snapshot version (e.g., 1.1.0-SNAPSHOT)
+     * - Other → Local development version
+     */
+    private fun determineVersion(): Version {
+        val refType = System.getenv("GITHUB_REF_TYPE")
+        val refName = System.getenv("GITHUB_REF_NAME")
+        
+        return when {
+            // Tag release: v1.0.0 → 1.0.0
+            refType == "tag" && refName?.startsWith("v") == true -> {
+                parseVersionFromTag(refName)
+            }
+            // publish branch → Snapshot
+            refName == "publish" -> {
+                Version(1, 1, 0, Version.Type.Snapshot)
+            }
+            // Local development or other branches
+            else -> {
+                Version(1, 0, 0, Version.Type.Release)
+            }
+        }
+    }
+
+    private fun parseVersionFromTag(tag: String): Version {
+        val versionString = tag.removePrefix("v")
+        val parts = versionString.split(".")
+        
+        return Version(
+            major = parts.getOrNull(0)?.toIntOrNull() ?: 1,
+            minor = parts.getOrNull(1)?.toIntOrNull() ?: 0,
+            hotfix = parts.getOrNull(2)?.toIntOrNull() ?: 0,
+            type = Version.Type.Release
+        )
+    }
 }
 
 fun Project.publishingConfig(projectDescription: String) {
@@ -64,7 +102,7 @@ fun Project.publishingConfig(projectDescription: String) {
                 pom {
                     name.set(projectName)
                     description.set(projectDescription)
-                    url.set("https://github.com/DataDog/dd-sdk-android-gradle-plugin/")
+                    url.set("https://github.com/flashcatcloud/fc-sdk-android-gradle-plugin/")
 
                     licenses {
                         license {
@@ -73,25 +111,25 @@ fun Project.publishingConfig(projectDescription: String) {
                         }
                     }
                     organization {
-                        name.set("Datadog")
-                        url.set("https://www.datadoghq.com/")
+                        name.set("Flashcat")
+                        url.set("https://flashcat.cloud/")
                     }
                     developers {
                         developer {
-                            name.set("Datadog")
-                            email.set("info@datadoghq.com")
-                            organization.set("Datadog")
-                            organizationUrl.set("https://www.datadoghq.com/")
+                            name.set("Flashcat")
+                            email.set("support@flashcat.cloud")
+                            organization.set("Flashcat")
+                            organizationUrl.set("https://flashcat.cloud/")
                         }
                     }
 
                     scm {
-                        url.set("https://github.com/DataDog/dd-sdk-android-gradle-plugin/")
+                        url.set("https://github.com/flashcatcloud/fc-sdk-android-gradle-plugin/")
                         connection.set(
-                            "scm:git:git@github.com:Datadog/dd-sdk-android-gradle-plugin.git"
+                            "scm:git:git@github.com:flashcatcloud/fc-sdk-android-gradle-plugin.git"
                         )
                         developerConnection.set(
-                            "scm:git:git@github.com:Datadog/dd-sdk-android-gradle-plugin.git"
+                            "scm:git:git@github.com:flashcatcloud/fc-sdk-android-gradle-plugin.git"
                         )
                     }
                 }

@@ -149,7 +149,7 @@ junitConfig()
 jacocoConfig()
 javadocConfig()
 dependencyUpdateConfig()
-publishingConfig("Plugin to upload Proguard/R8 mapping files to Datadog.")
+publishingConfig("Plugin to upload Proguard/R8 mapping files and NDK symbol files to Flashcat.")
 
 tasks.withType<Jar>().configureEach {
     from(kotlin20.output)
@@ -160,17 +160,17 @@ tasks.withType<Jar>().configureEach {
 
 gradlePlugin {
 
-    website.set("https://docs.datadoghq.com/real_user_monitoring/error_tracking/android/")
-    vcsUrl.set("https://github.com/DataDog/dd-sdk-android-gradle-plugin")
+    website.set("https://docs.flashcat.cloud/zh/flashduty/rum/introduction")
+    vcsUrl.set("https://github.com/flashcatcloud/fc-sdk-android-gradle-plugin")
 
     plugins {
         register("dd-sdk-android-gradle-plugin") {
-            description = "This plugin is used to upload your Proguard/R8 mapping files to Datadog."
-            id = "com.datadoghq.dd-sdk-android-gradle-plugin" // the alias
+            description = "This plugin is used to upload your Proguard/R8 mapping files and NDK symbol files to Flashcat."
+            id = "com.flashcat.android-gradle-plugin"
             implementationClass = "com.datadog.gradle.plugin.DdAndroidGradlePlugin"
-            displayName = "Gradle Plugin for Datadog Android SDK"
+            displayName = "Gradle Plugin for Flashcat Android SDK"
             version = MavenConfig.VERSION.name
-            tags.set(listOf("android", "datadog", "mapping", "crash-report", "proguard", "R8"))
+            tags.set(listOf("android", "flashcat", "mapping", "crash-report", "proguard", "R8", "symbolication", "ndk"))
         }
     }
 }

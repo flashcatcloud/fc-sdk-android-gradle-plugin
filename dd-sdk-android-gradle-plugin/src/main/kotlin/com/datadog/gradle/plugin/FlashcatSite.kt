@@ -27,7 +27,7 @@ enum class FlashcatSite(internal val id: String, internal val intakeHostName: St
      * Returns the endpoint to use to upload sourcemap to this site.
      */
     internal fun uploadEndpoint(): String {
-        return "https://sourcemap-intake.$intakeHostName/api/v2/srcmap"
+        return "https://$intakeHostName/sourcemap/upload"
     }
 
     /**
