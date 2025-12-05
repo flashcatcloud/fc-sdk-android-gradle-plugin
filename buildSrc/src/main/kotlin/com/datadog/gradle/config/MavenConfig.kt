@@ -60,6 +60,47 @@ object MavenConfig {
     }
 }
 
+/**
+ * 统一配置 Flashcat 项目的 POM 元数据，避免重复配置
+ */
+private fun MavenPublication.configureFlashcatPom(
+    projectName: String,
+    projectDescription: String
+) {
+    pom {
+        name.set(projectName)
+        description.set(projectDescription)
+        url.set("https://github.com/flashcatcloud/fc-sdk-android-gradle-plugin/")
+
+        licenses {
+            license {
+                name.set("Apache-2.0")
+                url.set("https://www.apache.org/licenses/LICENSE-2.0")
+            }
+        }
+        
+        organization {
+            name.set("Flashcat")
+            url.set("https://flashcat.cloud/")
+        }
+        
+        developers {
+            developer {
+                name.set("Flashcat")
+                email.set("support@flashcat.cloud")
+                organization.set("Flashcat")
+                organizationUrl.set("https://flashcat.cloud/")
+            }
+        }
+
+        scm {
+            url.set("https://github.com/flashcatcloud/fc-sdk-android-gradle-plugin/")
+            connection.set("scm:git:git@github.com:flashcatcloud/fc-sdk-android-gradle-plugin.git")
+            developerConnection.set("scm:git:git@github.com:flashcatcloud/fc-sdk-android-gradle-plugin.git")
+        }
+    }
+}
+
 fun Project.publishingConfig(projectDescription: String) {
     val projectName = name
     val signingExtension = extensions.findByType(SigningExtension::class)
@@ -109,87 +150,27 @@ fun Project.publishingConfig(projectDescription: String) {
                 artifactId = projectName
                 version = MavenConfig.VERSION.name
 
-                pom {
-                    name.set(projectName)
-                    description.set(projectDescription)
-                    url.set("https://github.com/flashcatcloud/fc-sdk-android-gradle-plugin/")
-
-                    licenses {
-                        license {
-                            name.set("Apache-2.0")
-                            url.set("https://www.apache.org/licenses/LICENSE-2.0")
-                        }
-                    }
-                    organization {
-                        name.set("Flashcat")
-                        url.set("https://flashcat.cloud/")
-                    }
-                    developers {
-                        developer {
-                            name.set("Flashcat")
-                            email.set("support@flashcat.cloud")
-                            organization.set("Flashcat")
-                            organizationUrl.set("https://flashcat.cloud/")
-                        }
-                    }
-
-                    scm {
-                        url.set("https://github.com/flashcatcloud/fc-sdk-android-gradle-plugin/")
-                        connection.set(
-                            "scm:git:git@github.com:flashcatcloud/fc-sdk-android-gradle-plugin.git"
-                        )
-                        developerConnection.set(
-                            "scm:git:git@github.com:flashcatcloud/fc-sdk-android-gradle-plugin.git"
-                        )
-                    }
-                }
+                configureFlashcatPom(projectName, projectDescription)
             }
 
             // Configure plugin marker publication for plugins {} DSL resolution
             // The marker publication is automatically created by java-gradle-plugin
+            // The naming pattern is: {plugin-name}PluginMarkerMaven
             // Default groupId is the plugin ID (cloud.flashcat.android-gradle-plugin), which is what Gradle looks for
-            publications.findByName("pluginMarkerMaven")?.let { markerPublication ->
+            publications.findByName("dd-sdk-android-gradle-pluginPluginMarkerMaven")?.let { markerPublication ->
                 check(markerPublication is MavenPublication)
                 
-                // Ensure version matches main publication
+                // Explicitly set groupId, artifactId, and version to ensure consistency
+                markerPublication.groupId = "cloud.flashcat.android-gradle-plugin"
+                markerPublication.artifactId = "cloud.flashcat.android-gradle-plugin.gradle.plugin"
                 markerPublication.version = MavenConfig.VERSION.name
                 
-                // Configure POM for marker publication
-                markerPublication.pom {
-                    name.set("${projectName} Plugin Marker")
-                    description.set("Plugin marker for ${projectDescription}")
-                    url.set("https://github.com/flashcatcloud/fc-sdk-android-gradle-plugin/")
-
-                    licenses {
-                        license {
-                            name.set("Apache-2.0")
-                            url.set("https://www.apache.org/licenses/LICENSE-2.0")
-                        }
-                    }
-                    organization {
-                        name.set("Flashcat")
-                        url.set("https://flashcat.cloud/")
-                    }
-                    developers {
-                        developer {
-                            name.set("Flashcat")
-                            email.set("support@flashcat.cloud")
-                            organization.set("Flashcat")
-                            organizationUrl.set("https://flashcat.cloud/")
-                        }
-                    }
-
-                    scm {
-                        url.set("https://github.com/flashcatcloud/fc-sdk-android-gradle-plugin/")
-                        connection.set(
-                            "scm:git:git@github.com:flashcatcloud/fc-sdk-android-gradle-plugin.git"
-                        )
-                        developerConnection.set(
-                            "scm:git:git@github.com:flashcatcloud/fc-sdk-android-gradle-plugin.git"
-                        )
-                    }
-                }
-            } ?: logger.warn("pluginMarkerMaven publication not found, marker artifact may not be published")
+                // Reuse common POM configuration
+                markerPublication.configureFlashcatPom(
+                    projectName = "$projectName Plugin Marker",
+                    projectDescription = "Plugin marker for $projectDescription"
+                )
+            } ?: logger.warn("Plugin marker publication not found, marker artifact may not be published")
         }
 
         // Sign all publications including pluginMarkerMaven
