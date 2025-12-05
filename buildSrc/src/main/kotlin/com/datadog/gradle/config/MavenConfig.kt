@@ -101,6 +101,7 @@ fun Project.publishingConfig(projectDescription: String) {
         }
 
         publishingExtension.apply {
+            // Configure main plugin publication
             publications.getByName(MavenConfig.PUBLICATION) {
                 check(this is MavenPublication)
 
@@ -143,6 +144,58 @@ fun Project.publishingConfig(projectDescription: String) {
                     }
                 }
             }
+
+            // Configure plugin marker publication for plugins {} DSL resolution
+            // The marker publication is automatically created by java-gradle-plugin
+            // Default groupId is the plugin ID (com.flashcat.android-gradle-plugin), which is what Gradle looks for
+            publications.findByName("pluginMarkerMaven")?.let { markerPublication ->
+                check(markerPublication is MavenPublication)
+                
+                // Ensure version matches main publication
+                markerPublication.version = MavenConfig.VERSION.name
+                
+                // Configure POM for marker publication
+                markerPublication.pom {
+                    name.set("${projectName} Plugin Marker")
+                    description.set("Plugin marker for ${projectDescription}")
+                    url.set("https://github.com/flashcatcloud/fc-sdk-android-gradle-plugin/")
+
+                    licenses {
+                        license {
+                            name.set("Apache-2.0")
+                            url.set("https://www.apache.org/licenses/LICENSE-2.0")
+                        }
+                    }
+                    organization {
+                        name.set("Flashcat")
+                        url.set("https://flashcat.cloud/")
+                    }
+                    developers {
+                        developer {
+                            name.set("Flashcat")
+                            email.set("support@flashcat.cloud")
+                            organization.set("Flashcat")
+                            organizationUrl.set("https://flashcat.cloud/")
+                        }
+                    }
+
+                    scm {
+                        url.set("https://github.com/flashcatcloud/fc-sdk-android-gradle-plugin/")
+                        connection.set(
+                            "scm:git:git@github.com:flashcatcloud/fc-sdk-android-gradle-plugin.git"
+                        )
+                        developerConnection.set(
+                            "scm:git:git@github.com:flashcatcloud/fc-sdk-android-gradle-plugin.git"
+                        )
+                    }
+                }
+            } ?: logger.warn("pluginMarkerMaven publication not found, marker artifact may not be published")
+        }
+
+        // Sign all publications including pluginMarkerMaven
+        // This is required for Maven Central and ensures marker artifact is also signed
+        publishingExtension.publications.forEach { publication ->
+            signingExtension.sign(publication)
         }
 
         val mavenPublishing = extensions.findByType<MavenPublishBaseExtension>()

@@ -73,7 +73,9 @@ jobs:
         run: |
           echo "Publishing to Maven Central..."
           echo "Version: $(./gradlew properties -q | grep "^version:" | awk '{print $2}')"
-          ./gradlew :dd-sdk-android-gradle-plugin:publishPluginMavenPublicationToMavenCentralRepository \
+          # Publish all publications including pluginMaven and pluginMarkerMaven
+          # The publishAllPublicationsToMavenCentralRepository task publishes all configured publications
+          ./gradlew :dd-sdk-android-gradle-plugin:publishAllPublicationsToMavenCentralRepository \
             -PmavenCentralUsername="${{ secrets.MAVEN_CENTRAL_USERNAME }}" \
             -PmavenCentralPassword="${{ secrets.MAVEN_CENTRAL_PASSWORD }}" \
             --no-daemon --stacktrace --info
