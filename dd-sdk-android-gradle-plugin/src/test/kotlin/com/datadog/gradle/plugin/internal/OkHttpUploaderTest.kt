@@ -336,7 +336,8 @@ internal class OkHttpUploaderTest {
     ) {
         // 407 will actually throw a protocol exception
         // Received HTTP_PROXY_AUTH (407) code while not using proxy
-        assumeTrue(statusCode != 407 && statusCode != 403)
+        // 413 (HTTP_ENTITY_TOO_LARGE) throws MaxSizeExceededException, not IllegalStateException
+        assumeTrue(statusCode != 407 && statusCode != 403 && statusCode != HttpURLConnection.HTTP_ENTITY_TOO_LARGE)
 
         // Given
         mockUploadResponse = MockResponse()
