@@ -24,7 +24,7 @@ Add the following line to your `build.gradle` file.
 
 ```groovy
 plugins {
-    id("com.flashcat.android-gradle-plugin") version "1.0.0"
+    id("cloud.flashcat.android-gradle-plugin") version "1.0.0"
 }
 ```
 
@@ -32,7 +32,7 @@ plugins {
 
 ```kotlin
 plugins {
-    id("com.flashcat.android-gradle-plugin") version "1.0.0"
+    id("cloud.flashcat.android-gradle-plugin") version "1.0.0"
 }
 ```
 
@@ -69,7 +69,7 @@ flashcat {
 
 If you're using variants, you can set a custom configuration per variant using the following syntax.
 
-#### Groovy 
+#### Groovy
 
 ```groovy
 flashcat {

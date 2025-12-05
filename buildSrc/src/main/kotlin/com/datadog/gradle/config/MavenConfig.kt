@@ -147,7 +147,7 @@ fun Project.publishingConfig(projectDescription: String) {
 
             // Configure plugin marker publication for plugins {} DSL resolution
             // The marker publication is automatically created by java-gradle-plugin
-            // Default groupId is the plugin ID (com.flashcat.android-gradle-plugin), which is what Gradle looks for
+            // Default groupId is the plugin ID (cloud.flashcat.android-gradle-plugin), which is what Gradle looks for
             publications.findByName("pluginMarkerMaven")?.let { markerPublication ->
                 check(markerPublication is MavenPublication)
                 

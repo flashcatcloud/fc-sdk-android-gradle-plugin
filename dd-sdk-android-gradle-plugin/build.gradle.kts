@@ -166,7 +166,7 @@ gradlePlugin {
     plugins {
         register("dd-sdk-android-gradle-plugin") {
             description = "This plugin is used to upload your Proguard/R8 mapping files and NDK symbol files to Flashcat."
-            id = "com.flashcat.android-gradle-plugin"
+            id = "cloud.flashcat.android-gradle-plugin"
             implementationClass = "com.datadog.gradle.plugin.DdAndroidGradlePlugin"
             displayName = "Gradle Plugin for Flashcat Android SDK"
             version = MavenConfig.VERSION.name
