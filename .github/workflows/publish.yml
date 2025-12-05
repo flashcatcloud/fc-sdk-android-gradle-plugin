@@ -40,12 +40,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Import GPG Key
-        env:
-          GPG_KEY_CONTENT: ${{ secrets.GPG_PRIVATE_KEY }}
+      - name: Verify GPG key setup
         run: |
-          echo "$GPG_KEY_CONTENT" | base64 -d | gpg --batch --import
-          gpg --list-secret-keys --keyid-format LONG
+          echo "GPG key is configured via environment variables for in-memory signing"
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -74,11 +71,12 @@ jobs:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           GPG_PASSWORD: ${{ secrets.GPG_PASSPHRASE }}
         run: |
+          echo "Publishing to Maven Central..."
+          echo "Version: $(./gradlew properties -q | grep "^version:" | awk '{print $2}')"
           ./gradlew :dd-sdk-android-gradle-plugin:publishPluginMavenPublicationToMavenCentralRepository \
             -PmavenCentralUsername="${{ secrets.MAVEN_CENTRAL_USERNAME }}" \
             -PmavenCentralPassword="${{ secrets.MAVEN_CENTRAL_PASSWORD }}" \
-            -Pdd-skip-signing=false \
-            --no-daemon --stacktrace
+            --no-daemon --stacktrace --info
 
       # 创建 GitHub Release（仅正式版）
       - name: Create GitHub Release

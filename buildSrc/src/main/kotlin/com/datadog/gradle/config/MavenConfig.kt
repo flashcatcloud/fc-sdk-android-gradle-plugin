@@ -72,11 +72,18 @@ fun Project.publishingConfig(projectDescription: String) {
         // Signing is required unless explicitly skipped
         isRequired = !hasProperty("dd-skip-signing")
         
-        // Use GPG agent for signing (key imported via gpg --import in CI)
-        // The GPG agent will automatically use the imported key
+        val privateKey = System.getenv("GPG_PRIVATE_KEY")
+        val password = System.getenv("GPG_PASSWORD")
         
-        // com.gradle.plugin-publish plugin will automatically add signing task "signPluginMavenPublication"
-        // sign(publishingExtension.publications.getByName(MavenConfig.PUBLICATION))
+        if (privateKey != null && password != null) {
+            // Decode base64 if needed
+            val decodedKey = try {
+                String(java.util.Base64.getDecoder().decode(privateKey))
+            } catch (e: Exception) {
+                privateKey // Already decoded
+            }
+            useInMemoryPgpKeys(decodedKey, password)
+        }
     }
 
     afterEvaluate {
