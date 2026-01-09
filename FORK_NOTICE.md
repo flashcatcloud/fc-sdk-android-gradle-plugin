@@ -20,8 +20,8 @@ This fork has been modified by **Flashcat, Inc.** to integrate with the Flashcat
 
 1. **Rebranding**: Changed from Datadog to Flashcat branding
 2. **Site Endpoints**: Updated to use Flashcat service endpoints
-   - `browser.flashcat.cloud` (CN site)
-   - `jira.flashcat.cloud` (STAGING site)
+   - `ci.flashcat.cloud` (CN site)
+   - `ci-dev.flashcat.cloud` (STAGING site)
 3. **Configuration**: Modified extension name from `datadog {}` to `flashcat {}`
 4. **API Keys**: Updated environment variables to `FC_API_KEY` / `FLASHCAT_API_KEY`
 5. **CI Configuration**: Changed JSON field from `datadogSite` to `flashcatSite`
@@ -58,8 +58,8 @@ We acknowledge and thank **Datadog, Inc.** for their excellent work on the origi
 
 1. **品牌重命名**: 从 Datadog 改为 Flashcat 品牌
 2. **服务端点**: 更新为使用 Flashcat 服务端点
-   - `browser.flashcat.cloud` (CN 站点)
-   - `jira.flashcat.cloud` (STAGING 站点)
+   - `ci.flashcat.cloud` (CN 站点)
+   - `ci-dev.flashcat.cloud` (STAGING 站点)
 3. **配置方式**: Extension 名称从 `datadog {}` 改为 `flashcat {}`
 4. **API 密钥**: 环境变量更新为 `FC_API_KEY` / `FLASHCAT_API_KEY`
 5. **CI 配置**: JSON 字段从 `datadogSite` 改为 `flashcatSite`
@@ -90,5 +90,3 @@ See [LICENSE](LICENSE) file for the full license text.
 
 See [NOTICE](NOTICE) file for attribution details.  
 归属详情请查看 [NOTICE](NOTICE) 文件。
-
-

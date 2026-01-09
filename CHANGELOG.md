@@ -1,3 +1,7 @@
+# 1.0.1 / 2026-01-09 (Flashcat Release)
+
+Change upload domain.
+
 # 1.0.0 / 2025-12-04 (Flashcat Release)
 
 **First Flashcat Release**
@@ -23,7 +27,7 @@ This is the first official release forked from Datadog dd-sdk-android-gradle-plu
 
 - CI configuration file keeps `datadog-ci.json` name but uses `flashcatSite` field
 - Environment variable priority: `FC_API_KEY` > `FLASHCAT_API_KEY` > `DD_API_KEY` > `DATADOG_API_KEY`
-- Site configuration: `CN` (browser.flashcat.cloud) and `STAGING` (jira.flashcat.cloud)
+- Site configuration: `CN` (ci.flashcat.cloud) and `STAGING` (ci-dev.flashcat.cloud)
 
 ### Links
 
