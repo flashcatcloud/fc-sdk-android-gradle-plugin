@@ -11,14 +11,14 @@ package com.datadog.gradle.plugin
  */
 enum class FlashcatSite(internal val id: String, internal val intakeHostName: String) {
     /**
-     * The CN site: [browser.flashcat.cloud](https://browser.flashcat.cloud).
+     * The CN site: [ci.flashcat.cloud](https://ci.flashcat.cloud).
      */
-    CN("cn", "browser.flashcat.cloud"),
+    CN("cn", "ci.flashcat.cloud"),
 
     /**
-     * The STAGING site (internal usage only): [jira.flashcat.cloud](https://jira.flashcat.cloud).
+     * The STAGING site (internal usage only): [ci-dev.flashcat.cloud](https://ci-dev.flashcat.cloud).
      */
-    STAGING("staging", "jira.flashcat.cloud");
+    STAGING("staging", "ci-dev.flashcat.cloud");
 
     /** The intake endpoint url. */
     val intakeEndpoint: String = "https://$intakeHostName"

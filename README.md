@@ -24,7 +24,7 @@ Add the following line to your `build.gradle` file.
 
 ```groovy
 plugins {
-    id("cloud.flashcat.android-gradle-plugin") version "1.0.0"
+    id("cloud.flashcat.android-gradle-plugin") version "1.1.0"
 }
 ```
 
@@ -32,7 +32,7 @@ plugins {
 
 ```kotlin
 plugins {
-    id("cloud.flashcat.android-gradle-plugin") version "1.0.0"
+    id("cloud.flashcat.android-gradle-plugin") version "1.1.0"
 }
 ```
 
@@ -120,7 +120,7 @@ export FC_API_KEY="your-flashcat-api-key"
 export FLASHCAT_API_KEY="your-flashcat-api-key"
 
 # Site (optional)
-export FLASHCAT_SITE="browser.flashcat.cloud"
+export FLASHCAT_SITE="ci.flashcat.cloud"
 ```
 
 ### Configuration File (flashcat-ci.json)
@@ -130,7 +130,7 @@ You can also use a `flashcat-ci.json` file in your project root for configuratio
 ```json
 {
   "apiKey": "your-flashcat-api-key",
-  "flashcatSite": "browser.flashcat.cloud"
+  "flashcatSite": "ci.flashcat.cloud"
 }
 ```
 
@@ -140,8 +140,8 @@ You can also use a `flashcat-ci.json` file in your project root for configuratio
 
 The plugin supports the following Flashcat sites:
 
-- **CN**: `browser.flashcat.cloud` (default)
-- **STAGING**: `jira.flashcat.cloud` (internal usage only)
+- **CN**: `ci.flashcat.cloud` (default)
+- **STAGING**: `ci-dev.flashcat.cloud` (internal usage only)
 
 ---
 
