@@ -24,7 +24,7 @@ Add the following line to your `build.gradle` file.
 
 ```groovy
 plugins {
-    id("cloud.flashcat.android-gradle-plugin") version "1.0.0"
+    id("cloud.flashcat.android-gradle-plugin") version "1.1.0"
 }
 ```
 
@@ -32,7 +32,7 @@ plugins {
 
 ```kotlin
 plugins {
-    id("cloud.flashcat.android-gradle-plugin") version "1.0.0"
+    id("cloud.flashcat.android-gradle-plugin") version "1.1.0"
 }
 ```
 

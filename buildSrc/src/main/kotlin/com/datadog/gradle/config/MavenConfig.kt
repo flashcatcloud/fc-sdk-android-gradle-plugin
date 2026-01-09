@@ -38,11 +38,11 @@ object MavenConfig {
             }
             // publish branch → Snapshot
             refName == "publish" -> {
-                Version(1, 0, 0, Version.Type.Snapshot)
+                Version(1, 1, 0, Version.Type.Snapshot)
             }
             // Local development or other branches
             else -> {
-                Version(1, 0, 0, Version.Type.Release)
+                Version(1, 1, 0, Version.Type.Release)
             }
         }
     }

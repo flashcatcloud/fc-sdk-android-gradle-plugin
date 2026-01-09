@@ -1,4 +1,4 @@
-# 1.1 / 2026-01-09 (Flashcat Release)
+# 1.1.0 / 2026-01-09 (Flashcat Release)
 
 ### breaking change
 
