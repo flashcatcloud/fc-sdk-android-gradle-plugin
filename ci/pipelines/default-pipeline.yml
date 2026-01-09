@@ -1,5 +1,5 @@
 include:
-  - 'https://gitlab-templates.ddbuild.io/slack-notifier/v3-sdm/template.yml'
+  - "https://gitlab-templates.ddbuild.io/slack-notifier/v3-sdm/template.yml"
 
 # SETUP
 
@@ -46,8 +46,8 @@ stages:
 ci-image:
   stage: ci-image
   when: manual
-  except: [ tags, schedules ]
-  tags: [ "arch:amd64" ]
+  except: [tags, schedules]
+  tags: ["arch:amd64"]
   image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/docker:24.0.4-jammy
   script:
     - docker buildx build --tag $CI_IMAGE_DOCKER -f ./ci/Dockerfile.gitlab --push .
@@ -57,7 +57,7 @@ ci-image:
 create_key:
   stage: security
   when: manual
-  tags: [ "arch:amd64" ]
+  tags: ["arch:amd64"]
   variables:
     PROJECT_NAME: "dd-sdk-android-gradle-plugin"
     EXPORT_TO_KEYSERVER: "true"
@@ -80,7 +80,7 @@ static-analysis:
     strategy: depend
 
 analysis:licenses:
-  tags: [ "arch:amd64" ]
+  tags: ["arch:amd64"]
   image: $CI_IMAGE_DOCKER
   stage: analysis
   timeout: 30m
@@ -88,7 +88,7 @@ analysis:licenses:
     - GRADLE_OPTS="-Xmx2560m" ./gradlew :dd-sdk-android-gradle-plugin:checkThirdPartyLicences --stacktrace --no-daemon
 
 analysis:woke:
-  tags: [ "arch:amd64" ]
+  tags: ["arch:amd64"]
   image: $CI_IMAGE_DOCKER
   stage: analysis
   timeout: 30m
@@ -98,7 +98,7 @@ analysis:woke:
 # TESTS
 
 test:plugin:
-  tags: [ "arch:amd64" ]
+  tags: ["arch:amd64"]
   image: $CI_IMAGE_DOCKER
   stage: test
   timeout: 1h
@@ -113,19 +113,18 @@ test:plugin:
       junit: dd-sdk-android-gradle-plugin/build/test-results/test/TEST-*.xml
 
 test:instrumented:
-  tags: [ "macos:sonoma" ]
+  tags: ["macos:sonoma"]
   stage: test
   timeout: 1h
   script:
-    - !reference [.snippets, install-android-sdk ]
-    - !reference [.snippets, install-android-api-components ]
-    - !reference [.snippets, run-instrumented ]
-
+    - !reference [.snippets, install-android-sdk]
+    - !reference [.snippets, install-android-api-components]
+    - !reference [.snippets, run-instrumented]
 
 # PUBLISH ARTIFACTS
 
 publish:publish-sonatype:
-  tags: [ "arch:amd64" ]
+  tags: ["arch:amd64"]
   only:
     - tags
     # Snapshot is only published on Maven Central, because Gradle Plugin portal can't handle snapshot
@@ -139,10 +138,10 @@ publish:publish-sonatype:
     - export GPG_PASSWORD=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.signing.gpg_passphrase --with-decryption --query "Parameter.Value" --out text)
     - echo "mavenCentralUsername=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.publishing.central_username --with-decryption --query "Parameter.Value" --out text)" >> ./gradle.properties
     - echo "mavenCentralPassword=$(aws ssm get-parameter --region us-east-1 --name ci.dd-sdk-android-gradle-plugin.publishing.central_password --with-decryption --query "Parameter.Value" --out text)" >> ./gradle.properties
-    - ./gradlew :dd-sdk-android-gradle-plugin:publishPluginMavenPublicationToMavenCentralRepository --stacktrace --no-daemon
+    - ./gradlew :dd-sdk-android-gradle-plugin:publishAllPublicationsToMavenCentralRepository --stacktrace --no-daemon
 
 publish:publish-gradle-portal:
-  tags: [ "arch:amd64" ]
+  tags: ["arch:amd64"]
   only:
     - tags
   image: $CI_IMAGE_DOCKER
@@ -200,7 +199,7 @@ notify:failure:
 # DOGFOOD
 
 notify:dogfood-app:
-  tags: [ "arch:amd64" ]
+  tags: ["arch:amd64"]
   only:
     - tags
   image: $CI_IMAGE_DOCKER
@@ -215,7 +214,7 @@ notify:dogfood-app:
     - python3 ./ci/scripts/dogfood.py -v $CI_COMMIT_TAG -t app
 
 notify:dogfood-demo:
-  tags: [ "arch:amd64" ]
+  tags: ["arch:amd64"]
   only:
     - tags
   image: $CI_IMAGE_DOCKER
@@ -230,7 +229,7 @@ notify:dogfood-demo:
     - python3 ./ci/scripts/dogfood.py -v $CI_COMMIT_TAG -t demo
 
 notify:dogfood-gradle-plugin:
-  tags: [ "arch:amd64" ]
+  tags: ["arch:amd64"]
   only:
     - tags
   image: $CI_IMAGE_DOCKER

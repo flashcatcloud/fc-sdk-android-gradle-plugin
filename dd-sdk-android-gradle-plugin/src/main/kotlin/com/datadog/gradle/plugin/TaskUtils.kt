@@ -22,13 +22,13 @@ internal object TaskUtils {
         return File(datadogDir, "repository.json")
     }
 
-    fun findDatadogCiFile(projectDir: File): File? {
+    fun findFlashcatCiFile(projectDir: File): File? {
         var currentDir: File? = projectDir
         var levelsUp = 0
         while (currentDir != null && levelsUp < MAX_DATADOG_CI_FILE_LOOKUP_LEVELS) {
-            val datadogCiFile = File(currentDir, "datadog-ci.json")
-            if (datadogCiFile.exists()) {
-                return datadogCiFile
+            val flashcatCiFile = File(currentDir, "flashcat-ci.json")
+            if (flashcatCiFile.exists()) {
+                return flashcatCiFile
             }
             currentDir = currentDir.parentFile
             levelsUp++

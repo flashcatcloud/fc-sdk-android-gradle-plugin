@@ -1,8 +1,20 @@
-# Gradle Plugin for Datadog Android SDK
+# Gradle Plugin for Flashcat Android SDK
 
-> This plugin is used to upload your Proguard/Dexguard/R8 mapping files and NDK symbol files to Datadog to get a complete RUM Error Tracking experience.
+> This plugin is used to upload your Proguard/Dexguard/R8 mapping files and NDK symbol files to Flashcat to get a complete RUM Error Tracking experience.
 
-Once your mapping file are uploaded, any error/crash reported through RUM will have a deobfuscated/symbolicated stacktrace, enabling an easy diagnosis of the root cause of the error.
+Once your mapping files are uploaded, any error/crash reported through RUM will have a deobfuscated/symbolicated stacktrace, enabling an easy diagnosis of the root cause of the error.
+
+## 📌 Important Notice
+
+This project is a fork of [Datadog's dd-sdk-android-gradle-plugin](https://github.com/DataDog/dd-sdk-android-gradle-plugin), modified and adapted for the Flashcat platform.
+
+**Original Project**: [DataDog/dd-sdk-android-gradle-plugin](https://github.com/DataDog/dd-sdk-android-gradle-plugin)  
+**License**: Apache License 2.0  
+**Copyright**: Original work © 2019-2024 Datadog, Inc. | Modifications © 2025 Flashcat, Inc.
+
+All modifications maintain compliance with the Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE) files for details.
+
+---
 
 ## Getting Started
 
@@ -12,13 +24,21 @@ Add the following line to your `build.gradle` file.
 
 ```groovy
 plugins {
-    id("com.datadoghq.dd-sdk-android-gradle-plugin") version "x.y.z"
+    id("cloud.flashcat.android-gradle-plugin") version "1.0.0"
+}
+```
+
+或在 Kotlin DSL 中：
+
+```kotlin
+plugins {
+    id("cloud.flashcat.android-gradle-plugin") version "1.0.0"
 }
 ```
 
 ### Uploading
 
-To upload your mapping files to Datadog, run the `uploadMapping[Variant]` task in your Android application project as part of your build or after your build, for example:
+To upload your mapping files to Flashcat, run the `uploadMapping[Variant]` task in your Android application project as part of your build or after your build, for example:
 
 ```bash
 ./gradlew uploadMappingRelease
@@ -35,28 +55,28 @@ Similarly, to upload NDK symbols, run the `uploadNdkSymbolFiles[Variant]` task i
 You can configure the plugin by adding the following block at the end of your `build.gradle` file.
 
 ```groovy
-datadog {
+flashcat {
     versionName = "1.3.0" // Optional, by default it is read from your Android plugin configuration's version name
     serviceName = "my-service" // Optional, by default it is read from your Android plugin configuration's package name
-    site = "US1" // Optional, can be "US1", "EU1" or "US1_FED", etc. (check `DatadogSite` documentation for the full list). Default is "US1"
-    checkProjectDependencies = "warn" // Optional, can be "warn", "fail" or "none". Default is "fail". Will check if Datadog SDK is in the project dependencies.
+    site = "CN" // Optional, can be "CN" or "STAGING" (check `FlashcatSite` documentation for the full list). Default is "CN"
+    checkProjectDependencies = "warn" // Optional, can be "warn", "fail" or "none". Default is "fail". Will check if Flashcat SDK is in the project dependencies.
     mappingFilePath = "path/to/mapping.txt" // Optional, provides a custom mapping file path. Default is "build/outputs/mapping/{variant}/mapping.txt".
     nonDefaultObfuscation = false // Optional, to be used if a 3rd-party obfuscation tool is used. Default is false.
-    ignoreDatadogCiFileConfig = false // Optional, ignore configuration provided in `datadog-ci.json` file if found. Default is false.
+    ignoreFlashcatCiFileConfig = false // Optional, ignore configuration provided in `flashcat-ci.json` file if found. Default is false.
     additionalSymbolFilesLocations = ["/path/to/location/obj"] // Optional, additional locations the Gradle plugin will check for `.so` files during `uploadNdkSymbolFiles` task. Default is none.
 }
 ```
 
 If you're using variants, you can set a custom configuration per variant using the following syntax.
 
-#### Groovy 
+#### Groovy
 
 ```groovy
-datadog {
-    site = "US1" // Variants with no configurations will use this as default
+flashcat {
+    site = "CN" // Variants with no configurations will use this as default
     variants {
         fr {
-            site = "EU1"
+            site = "STAGING"
             mappingFilePath = "path/to/fr/mapping.txt"
         }
     }
@@ -66,11 +86,11 @@ datadog {
 #### Kotlin Script
 
 ```kotlin
-datadog {
-    site = "US1" // Variants with no configurations will use this as default
+flashcat {
+    site = "CN" // Variants with no configurations will use this as default
     variants {
         register("fr") {
-            site = "EU1"
+            site = "STAGING"
             mappingFilePath = "path/to/fr/mapping.txt"
         }
     }
@@ -81,25 +101,64 @@ datadog {
 
 This plugin supports [Gradle configuration cache](https://docs.gradle.org/7.1/userguide/configuration_cache.html) starting from the version `1.1.0`, but to have this support you need to disable SDK dependency check by setting `checkProjectDependencies` to `none`:
 
-```
-datadog {
+```groovy
+flashcat {
     ...
     checkProjectDependencies = "none"
     ...
 }
 ```
 
-For more information, see [Android Crash Reporting and Error Tracking](https://docs.datadoghq.com/real_user_monitoring/error_tracking/android/).
+### Environment Variables
+
+You can also configure the plugin using environment variables:
+
+```bash
+# API Key (required)
+export FC_API_KEY="your-flashcat-api-key"
+# or
+export FLASHCAT_API_KEY="your-flashcat-api-key"
+
+# Site (optional)
+export FLASHCAT_SITE="browser.flashcat.cloud"
+```
+
+### Configuration File (flashcat-ci.json)
+
+You can also use a `flashcat-ci.json` file in your project root for configuration:
+
+```json
+{
+  "apiKey": "your-flashcat-api-key",
+  "flashcatSite": "browser.flashcat.cloud"
+}
+```
+
+---
+
+## Available Sites
+
+The plugin supports the following Flashcat sites:
+
+- **CN**: `browser.flashcat.cloud` (default)
+- **STAGING**: `jira.flashcat.cloud` (internal usage only)
+
+---
 
 ## Troubleshooting
 
-If you encounter any issue when using the Gradle Plugin for Datadog Android SDK, please take a look at 
-the existing [issues](https://github.com/DataDog/dd-sdk-android/issues?q=is%3Aissue).
+If you encounter any issue when using the Gradle Plugin for Flashcat Android SDK, please contact Flashcat support.
+
+---
 
 ## Contributing
 
-Pull requests are welcome. First, open an issue to discuss what you would like to change. For more information, read the [Contributing Guide](CONTRIBUTING.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md)
+
+---
 
 ## License
 
-[Apache License, v2.0](LICENSE)
+This project is licensed under the Apache License, Version 2.0 - see the [LICENSE](LICENSE) file for details.
+
+This is a derivative work of Datadog's dd-sdk-android-gradle-plugin. See [NOTICE](NOTICE) for attribution details.

@@ -18,6 +18,6 @@ internal data class ApiKey(val value: String, val source: ApiKeySource) {
 enum class ApiKeySource {
     GRADLE_PROPERTY,
     ENVIRONMENT,
-    DATADOG_CI_CONFIG_FILE,
+    FLASHCAT_CI_CONFIG_FILE,
     NONE
 }

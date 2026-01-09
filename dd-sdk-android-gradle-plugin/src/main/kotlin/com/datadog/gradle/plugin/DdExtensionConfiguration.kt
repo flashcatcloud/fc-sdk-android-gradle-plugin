@@ -29,7 +29,7 @@ open class DdExtensionConfiguration(
     var serviceName: String? = null
 
     /**
-     * The Datadog site to upload your data to (one of names in [DatadogSite], e.g. "US1", "EU1", etc.).
+     * The Flashcat site to upload your data to (one of names in [FlashcatSite], e.g. "CN", "STAGING", etc.).
      */
     var site: String? = null
 
@@ -91,9 +91,9 @@ open class DdExtensionConfiguration(
     var nonDefaultObfuscation: Boolean = false
 
     /**
-     * Ignore the config declared in `datadog-ci.json` file if found.
+     * Ignore the config declared in `flashcat-ci.json` file if found.
      */
-    var ignoreDatadogCiFileConfig: Boolean = false
+    var ignoreFlashcatCiFileConfig: Boolean = false
 
     /**
      * Additional locations that Gradle plugin will check for `.so` files during `uploadNdkSymbolFiles` task.
@@ -128,7 +128,7 @@ open class DdExtensionConfiguration(
         config.additionalSymbolFilesLocations?.let { additionalSymbolFilesLocations = it }
         mappingFilePackageAliases = config.mappingFilePackageAliases
         mappingFileTrimIndents = config.mappingFileTrimIndents
-        ignoreDatadogCiFileConfig = config.ignoreDatadogCiFileConfig
+        ignoreFlashcatCiFileConfig = config.ignoreFlashcatCiFileConfig
         nonDefaultObfuscation = config.nonDefaultObfuscation
         composeInstrumentation = config.composeInstrumentation
     }

@@ -6,7 +6,7 @@
 
 package com.datadog.gradle.plugin.internal
 
-import com.datadog.gradle.plugin.DatadogSite
+import com.datadog.gradle.plugin.FlashcatSite
 import com.datadog.gradle.plugin.DdAndroidGradlePlugin.Companion.LOGGER
 import com.datadog.gradle.plugin.RepositoryInfo
 import okhttp3.MediaType
@@ -47,7 +47,7 @@ internal class OkHttpUploader : Uploader {
 
     @Suppress("TooGenericExceptionCaught")
     override fun upload(
-        site: DatadogSite,
+        site: FlashcatSite,
         fileInfo: Uploader.UploadFileInfo,
         repositoryFile: File?,
         apiKey: String,
@@ -56,7 +56,7 @@ internal class OkHttpUploader : Uploader {
         useGzip: Boolean,
         emulateNetworkCall: Boolean
     ) {
-        LOGGER.info("Uploading file ${fileInfo.fileName} with tags $identifier (site=${site.domain}):")
+        LOGGER.info("Uploading file ${fileInfo.fileName} with tags $identifier (site=${site.intakeHostName}):")
         if (fileInfo.extraAttributes.isNotEmpty()) {
             LOGGER.info("  extra attributes: ${fileInfo.extraAttributes}")
         }
@@ -156,7 +156,7 @@ internal class OkHttpUploader : Uploader {
     @Suppress("ThrowingInternalException", "TooGenericExceptionThrown", "ThrowsCount")
     private fun handleResponse(
         response: Response?,
-        site: DatadogSite,
+        site: FlashcatSite,
         apiKey: String,
         identifier: DdAppIdentifier
     ) {
@@ -200,7 +200,7 @@ internal class OkHttpUploader : Uploader {
         response.body?.close()
     }
 
-    private fun validateApiKey(site: DatadogSite, apiKey: String): Boolean? {
+    private fun validateApiKey(site: FlashcatSite, apiKey: String): Boolean? {
         val request = Request.Builder()
             .url(site.apiKeyVerificationEndpoint())
             .header(HEADER_API_KEY, apiKey)
@@ -236,9 +236,9 @@ internal class OkHttpUploader : Uploader {
 
     internal inner class InvalidApiKeyException(
         uploadIdentifier: DdAppIdentifier,
-        site: DatadogSite
+        site: FlashcatSite
     ) : RuntimeException(
-        "Unable to upload mapping file for $uploadIdentifier (site=${site.domain}); " +
+        "Unable to upload mapping file for $uploadIdentifier (site=${site.intakeHostName}); " +
             "verify that you're using a valid API Key"
     )
 

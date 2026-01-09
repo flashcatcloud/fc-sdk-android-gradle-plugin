@@ -82,7 +82,7 @@ internal class MappingFileUploadTaskTest {
     lateinit var fakeApiKey: ApiKey
 
     @Forgery
-    lateinit var fakeSite: DatadogSite
+    lateinit var fakeSite: FlashcatSite
 
     @StringForgery(regex = "git@github\\.com:[a-z]+/[a-z][a-z0-9_-]+\\.git")
     lateinit var fakeRemoteUrl: String
@@ -126,12 +126,12 @@ internal class MappingFileUploadTaskTest {
         testedTask.site = fakeSite.name
         testedTask.buildId.set(fakeBuildId)
         testedTask.mappingFile.set(fakeProject.objects.fileProperty().fileValue(File(tempDir, fakeMappingFileName)))
-        setEnv(FileUploadTask.DATADOG_SITE, "")
+        setEnv(FileUploadTask.FLASHCAT_SITE, "")
     }
 
     @AfterEach
     fun `tear down`() {
-        removeEnv(FileUploadTask.DATADOG_SITE)
+        removeEnv(FileUploadTask.FLASHCAT_SITE)
     }
 
     @Test
@@ -539,7 +539,7 @@ internal class MappingFileUploadTaskTest {
 
         // Then
         verify(mockUploader).upload(
-            DatadogSite.US1,
+            FlashcatSite.CN,
             Uploader.UploadFileInfo(
                 fileKey = MappingFileUploadTask.KEY_JVM_MAPPING_FILE,
                 file = fakeMappingFile,
@@ -598,15 +598,15 @@ internal class MappingFileUploadTaskTest {
     @Test
     fun `M apply datadog CI config if exists W applyTask()`(forge: Forge) {
         // Given
-        val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
+        val fakeFlashcatCiFile = File(tempDir, "flashcat-ci.json")
 
         val fakeDatadogCiApiKey = forge.anAlphabeticalString()
-        val fakeDatadogCiDomain = forge.aValueFrom(DatadogSite::class.java).domain
+        val fakeDatadogCiDomain = forge.aValueFrom(FlashcatSite::class.java).intakeHostName
 
-        fakeDatadogCiFile.writeText(
+        fakeFlashcatCiFile.writeText(
             JSONObject().apply {
                 put("apiKey", fakeDatadogCiApiKey)
-                put("datadogSite", fakeDatadogCiDomain)
+                put("flashcatSite", fakeDatadogCiDomain)
             }.toString()
         )
 
@@ -614,7 +614,7 @@ internal class MappingFileUploadTaskTest {
             ApiKeySource::class.java,
             exclude = listOf(ApiKeySource.GRADLE_PROPERTY)
         )
-        testedTask.datadogCiFile = fakeDatadogCiFile
+        testedTask.flashcatCiFile = fakeFlashcatCiFile
         testedTask.site = ""
 
         // When
@@ -622,27 +622,27 @@ internal class MappingFileUploadTaskTest {
 
         // Then
         assertThat(testedTask.apiKey).isEqualTo(fakeDatadogCiApiKey)
-        assertThat(testedTask.apiKeySource).isEqualTo(ApiKeySource.DATADOG_CI_CONFIG_FILE)
-        assertThat(testedTask.site).isEqualTo(DatadogSite.fromDomain(fakeDatadogCiDomain)?.name)
+        assertThat(testedTask.apiKeySource).isEqualTo(ApiKeySource.FLASHCAT_CI_CONFIG_FILE)
+        assertThat(testedTask.site).isEqualTo(FlashcatSite.fromHostName(fakeDatadogCiDomain)?.name)
     }
 
     @Test
     fun `M apply datadog CI config if exists W applyTask() {apiKey from gradle}`(forge: Forge) {
         // Given
-        val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
+        val fakeFlashcatCiFile = File(tempDir, "flashcat-ci.json")
 
         val fakeDatadogCiApiKey = forge.anAlphabeticalString()
-        val fakeDatadogCiDomain = forge.aValueFrom(DatadogSite::class.java).domain
+        val fakeDatadogCiDomain = forge.aValueFrom(FlashcatSite::class.java).intakeHostName
 
-        fakeDatadogCiFile.writeText(
+        fakeFlashcatCiFile.writeText(
             JSONObject().apply {
                 put("apiKey", fakeDatadogCiApiKey)
-                put("datadogSite", fakeDatadogCiDomain)
+                put("flashcatSite", fakeDatadogCiDomain)
             }.toString()
         )
 
         testedTask.apiKeySource = ApiKeySource.GRADLE_PROPERTY
-        testedTask.datadogCiFile = fakeDatadogCiFile
+        testedTask.flashcatCiFile = fakeFlashcatCiFile
         testedTask.site = ""
 
         // When
@@ -651,23 +651,23 @@ internal class MappingFileUploadTaskTest {
         // Then
         assertThat(testedTask.apiKey).isEqualTo(fakeApiKey.value)
         assertThat(testedTask.apiKeySource).isEqualTo(ApiKeySource.GRADLE_PROPERTY)
-        assertThat(testedTask.site).isEqualTo(DatadogSite.fromDomain(fakeDatadogCiDomain)?.name)
+        assertThat(testedTask.site).isEqualTo(FlashcatSite.fromHostName(fakeDatadogCiDomain)?.name)
     }
 
     @Test
     fun `M apply datadog CI config if exists W applyTask() { apiKey is missing }`(forge: Forge) {
         // Given
-        val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
+        val fakeFlashcatCiFile = File(tempDir, "flashcat-ci.json")
 
-        val fakeDatadogCiDomain = forge.aValueFrom(DatadogSite::class.java).domain
+        val fakeDatadogCiDomain = forge.aValueFrom(FlashcatSite::class.java).intakeHostName
 
-        fakeDatadogCiFile.writeText(
+        fakeFlashcatCiFile.writeText(
             JSONObject().apply {
-                put("datadogSite", fakeDatadogCiDomain)
+                put("flashcatSite", fakeDatadogCiDomain)
             }.toString()
         )
 
-        testedTask.datadogCiFile = fakeDatadogCiFile
+        testedTask.flashcatCiFile = fakeFlashcatCiFile
         testedTask.site = ""
 
         // When
@@ -675,17 +675,17 @@ internal class MappingFileUploadTaskTest {
 
         // Then
         assertThat(testedTask.apiKey).isEqualTo(fakeApiKey.value)
-        assertThat(testedTask.site).isEqualTo(DatadogSite.fromDomain(fakeDatadogCiDomain)?.name)
+        assertThat(testedTask.site).isEqualTo(FlashcatSite.fromHostName(fakeDatadogCiDomain)?.name)
     }
 
     @Test
     fun `M apply datadog CI config if exists W applyTask() {datadogSite missing}`(forge: Forge) {
         // Given
-        val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
+        val fakeFlashcatCiFile = File(tempDir, "flashcat-ci.json")
 
         val fakeDatadogCiApiKey = forge.anAlphabeticalString()
 
-        fakeDatadogCiFile.writeText(
+        fakeFlashcatCiFile.writeText(
             JSONObject().apply {
                 put("apiKey", fakeDatadogCiApiKey)
             }.toString()
@@ -695,31 +695,31 @@ internal class MappingFileUploadTaskTest {
             ApiKeySource::class.java,
             exclude = listOf(ApiKeySource.GRADLE_PROPERTY)
         )
-        testedTask.datadogCiFile = fakeDatadogCiFile
+        testedTask.flashcatCiFile = fakeFlashcatCiFile
 
         // When
         testedTask.applyTask()
 
         // Then
         assertThat(testedTask.apiKey).isEqualTo(fakeDatadogCiApiKey)
-        assertThat(testedTask.apiKeySource).isEqualTo(ApiKeySource.DATADOG_CI_CONFIG_FILE)
+        assertThat(testedTask.apiKeySource).isEqualTo(ApiKeySource.FLASHCAT_CI_CONFIG_FILE)
         assertThat(testedTask.site).isEqualTo(fakeSite.name)
     }
 
     @Test
     fun `M apply datadog CI config if exists W applyTask() {datadogSite unknown}`(forge: Forge) {
         // Given
-        val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
+        val fakeFlashcatCiFile = File(tempDir, "flashcat-ci.json")
 
         val fakeDatadogCiDomain = forge.aStringMatching("[a-z]+\\.com")
 
-        fakeDatadogCiFile.writeText(
+        fakeFlashcatCiFile.writeText(
             JSONObject().apply {
-                put("datadogSite", fakeDatadogCiDomain)
+                put("flashcatSite", fakeDatadogCiDomain)
             }.toString()
         )
 
-        testedTask.datadogCiFile = fakeDatadogCiFile
+        testedTask.flashcatCiFile = fakeFlashcatCiFile
         testedTask.site = ""
 
         // When
@@ -728,23 +728,23 @@ internal class MappingFileUploadTaskTest {
         // Then
         assertThat(testedTask.apiKey).isEqualTo(fakeApiKey.value)
         assertThat(testedTask.apiKeySource).isEqualTo(fakeApiKey.source)
-        assertThat(testedTask.site).isEqualTo(DatadogSite.US1.name)
+        assertThat(testedTask.site).isEqualTo(FlashcatSite.CN.name)
     }
 
     @Test
     fun `M apply datadog CI config if exists W applyTask() {site is set already}`(forge: Forge) {
         // Given
-        val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
+        val fakeFlashcatCiFile = File(tempDir, "flashcat-ci.json")
 
-        val fakeDatadogCiDomain = forge.aValueFrom(DatadogSite::class.java).domain
+        val fakeDatadogCiDomain = forge.aValueFrom(FlashcatSite::class.java).intakeHostName
 
-        fakeDatadogCiFile.writeText(
+        fakeFlashcatCiFile.writeText(
             JSONObject().apply {
-                put("datadogSite", fakeDatadogCiDomain)
+                put("flashcatSite", fakeDatadogCiDomain)
             }.toString()
         )
 
-        testedTask.datadogCiFile = fakeDatadogCiFile
+        testedTask.flashcatCiFile = fakeFlashcatCiFile
 
         // When
         testedTask.applyTask()
@@ -758,8 +758,8 @@ internal class MappingFileUploadTaskTest {
     @Test
     fun `M read site from environment variable W applyTask() {site is not set}`(forge: Forge) {
         // Given
-        val fakeDatadogEnvDomain = forge.aValueFrom(DatadogSite::class.java).domain
-        setEnv(FileUploadTask.DATADOG_SITE, fakeDatadogEnvDomain)
+        val fakeDatadogEnvDomain = forge.aValueFrom(FlashcatSite::class.java).intakeHostName
+        setEnv(FileUploadTask.FLASHCAT_SITE, fakeDatadogEnvDomain)
         testedTask.site = ""
 
         // When
@@ -768,13 +768,13 @@ internal class MappingFileUploadTaskTest {
         // Then
         assertThat(testedTask.apiKey).isEqualTo(fakeApiKey.value)
         assertThat(testedTask.apiKeySource).isEqualTo(fakeApiKey.source)
-        assertThat(testedTask.site).isEqualTo(DatadogSite.fromDomain(fakeDatadogEnvDomain)?.name)
+        assertThat(testedTask.site).isEqualTo(FlashcatSite.fromHostName(fakeDatadogEnvDomain)?.name)
     }
 
     @Test
     fun `M read site from environment variable W applyTask() {site is set}`(forge: Forge) {
         // Given
-        val fakeDatadogEnvDomain = forge.aValueFrom(DatadogSite::class.java).domain
+        val fakeDatadogEnvDomain = forge.aValueFrom(FlashcatSite::class.java).intakeHostName
         setEnv(DdAndroidGradlePlugin.DATADOG_API_KEY, fakeDatadogEnvDomain)
 
         // When
@@ -789,11 +789,11 @@ internal class MappingFileUploadTaskTest {
     @Test
     fun `M not apply datadog CI config if exists W applyTask() { malformed json }`(forge: Forge) {
         // Given
-        val fakeDatadogCiFile = File(tempDir, "datadog-ci.json")
+        val fakeFlashcatCiFile = File(tempDir, "flashcat-ci.json")
 
-        fakeDatadogCiFile.writeText(forge.anElementFrom(forge.aString(), JSONArray().toString()))
+        fakeFlashcatCiFile.writeText(forge.anElementFrom(forge.aString(), JSONArray().toString()))
 
-        testedTask.datadogCiFile = fakeDatadogCiFile
+        testedTask.flashcatCiFile = fakeFlashcatCiFile
 
         // When
         testedTask.applyTask()

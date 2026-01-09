@@ -29,24 +29,24 @@ import java.util.stream.Stream
 class TaskUtilsTest {
 
     @Test
-    fun `M find datadog-ci file W findDatadogCiFile()`(
+    fun `M find flashcat-ci file W findFlashcatCiFile()`(
         @TempDir rootDir: File,
         forge: Forge
     ) {
         // Given
         val tree = buildDirectoryTree(rootDir, maxDepth = 3, forge = forge)
 
-        File(tree[forge.anInt(0, tree.size)], "datadog-ci.json").createNewFile()
+        File(tree[forge.anInt(0, tree.size)], "flashcat-ci.json").createNewFile()
 
         // When
-        val ciFile = TaskUtils.findDatadogCiFile(tree.last())
+        val ciFile = TaskUtils.findFlashcatCiFile(tree.last())
 
         // Then
         assertThat(ciFile).isNotNull()
     }
 
     @Test
-    fun `M return null W findDatadogCiFile() { no ci file found }`(
+    fun `M return null W findFlashcatCiFile() { no ci file found }`(
         @TempDir rootDir: File,
         forge: Forge
     ) {
@@ -54,14 +54,14 @@ class TaskUtilsTest {
         val tree = buildDirectoryTree(rootDir, maxDepth = 3, forge = forge)
 
         // When
-        val ciFile = TaskUtils.findDatadogCiFile(tree.last())
+        val ciFile = TaskUtils.findFlashcatCiFile(tree.last())
 
         // Then
         assertThat(ciFile).isNull()
     }
 
     @Test
-    fun `M return null W findDatadogCiFile() { beyond max levels up }`(
+    fun `M return null W findFlashcatCiFile() { beyond max levels up }`(
         @TempDir rootDir: File,
         forge: Forge
     ) {
@@ -69,7 +69,7 @@ class TaskUtilsTest {
         val tree = buildDirectoryTree(rootDir, minDepth = 4, maxDepth = 7, forge = forge)
 
         // When
-        val ciFile = TaskUtils.findDatadogCiFile(tree.last())
+        val ciFile = TaskUtils.findFlashcatCiFile(tree.last())
 
         // Then
         assertThat(ciFile).isNull()

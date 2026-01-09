@@ -17,9 +17,88 @@ import org.gradle.plugins.signing.SigningExtension
 
 object MavenConfig {
 
-    val VERSION = Version(1, 22, 0, Version.Type.Snapshot)
-    const val GROUP_ID = "com.datadoghq"
+    val VERSION = determineVersion()
+    const val GROUP_ID = "cloud.flashcat"
     const val PUBLICATION = "pluginMaven"
+
+    /**
+     * Determine version based on Git ref type and branch
+     * - Tag (v*) → Release version (e.g., 1.0.0)
+     * - publish branch → Snapshot version (e.g., 1.1.0-SNAPSHOT)
+     * - Other → Local development version
+     */
+    private fun determineVersion(): Version {
+        val refType = System.getenv("GITHUB_REF_TYPE")
+        val refName = System.getenv("GITHUB_REF_NAME")
+        
+        return when {
+            // Tag release: v1.0.0 → 1.0.0
+            refType == "tag" && refName?.startsWith("v") == true -> {
+                parseVersionFromTag(refName)
+            }
+            // publish branch → Snapshot
+            refName == "publish" -> {
+                Version(1, 0, 0, Version.Type.Snapshot)
+            }
+            // Local development or other branches
+            else -> {
+                Version(1, 0, 0, Version.Type.Release)
+            }
+        }
+    }
+
+    private fun parseVersionFromTag(tag: String): Version {
+        val versionString = tag.removePrefix("v")
+        val parts = versionString.split(".")
+        
+        return Version(
+            major = parts.getOrNull(0)?.toIntOrNull() ?: 1,
+            minor = parts.getOrNull(1)?.toIntOrNull() ?: 0,
+            hotfix = parts.getOrNull(2)?.toIntOrNull() ?: 0,
+            type = Version.Type.Release
+        )
+    }
+}
+
+/**
+ * 统一配置 Flashcat 项目的 POM 元数据，避免重复配置
+ */
+private fun MavenPublication.configureFlashcatPom(
+    projectName: String,
+    projectDescription: String
+) {
+    pom {
+        name.set(projectName)
+        description.set(projectDescription)
+        url.set("https://github.com/flashcatcloud/fc-sdk-android-gradle-plugin/")
+
+        licenses {
+            license {
+                name.set("Apache-2.0")
+                url.set("https://www.apache.org/licenses/LICENSE-2.0")
+            }
+        }
+        
+        organization {
+            name.set("Flashcat")
+            url.set("https://flashcat.cloud/")
+        }
+        
+        developers {
+            developer {
+                name.set("Flashcat")
+                email.set("support@flashcat.cloud")
+                organization.set("Flashcat")
+                organizationUrl.set("https://flashcat.cloud/")
+            }
+        }
+
+        scm {
+            url.set("https://github.com/flashcatcloud/fc-sdk-android-gradle-plugin/")
+            connection.set("scm:git:git@github.com:flashcatcloud/fc-sdk-android-gradle-plugin.git")
+            developerConnection.set("scm:git:git@github.com:flashcatcloud/fc-sdk-android-gradle-plugin.git")
+        }
+    }
 }
 
 fun Project.publishingConfig(projectDescription: String) {
@@ -31,12 +110,21 @@ fun Project.publishingConfig(projectDescription: String) {
         return
     }
     signingExtension.apply {
+        // Signing is required unless explicitly skipped
+        isRequired = !hasProperty("dd-skip-signing")
+        
         val privateKey = System.getenv("GPG_PRIVATE_KEY")
         val password = System.getenv("GPG_PASSWORD")
-        isRequired = System.getenv("CI").toBoolean() && !hasProperty("dd-skip-signing")
-        useInMemoryPgpKeys(privateKey, password)
-        // com.gradle.plugin-publish plugin will automatically add signing task "signPluginMavenPublication"
-        // sign(publishingExtension.publications.getByName(MavenConfig.PUBLICATION))
+        
+        if (privateKey != null && password != null) {
+            // Decode base64 if needed
+            val decodedKey = try {
+                String(java.util.Base64.getDecoder().decode(privateKey))
+            } catch (e: Exception) {
+                privateKey // Already decoded
+            }
+            useInMemoryPgpKeys(decodedKey, password)
+        }
     }
 
     afterEvaluate {
@@ -54,6 +142,7 @@ fun Project.publishingConfig(projectDescription: String) {
         }
 
         publishingExtension.apply {
+            // Configure main plugin publication
             publications.getByName(MavenConfig.PUBLICATION) {
                 check(this is MavenPublication)
 
@@ -61,41 +150,33 @@ fun Project.publishingConfig(projectDescription: String) {
                 artifactId = projectName
                 version = MavenConfig.VERSION.name
 
-                pom {
-                    name.set(projectName)
-                    description.set(projectDescription)
-                    url.set("https://github.com/DataDog/dd-sdk-android-gradle-plugin/")
-
-                    licenses {
-                        license {
-                            name.set("Apache-2.0")
-                            url.set("https://www.apache.org/licenses/LICENSE-2.0")
-                        }
-                    }
-                    organization {
-                        name.set("Datadog")
-                        url.set("https://www.datadoghq.com/")
-                    }
-                    developers {
-                        developer {
-                            name.set("Datadog")
-                            email.set("info@datadoghq.com")
-                            organization.set("Datadog")
-                            organizationUrl.set("https://www.datadoghq.com/")
-                        }
-                    }
-
-                    scm {
-                        url.set("https://github.com/DataDog/dd-sdk-android-gradle-plugin/")
-                        connection.set(
-                            "scm:git:git@github.com:Datadog/dd-sdk-android-gradle-plugin.git"
-                        )
-                        developerConnection.set(
-                            "scm:git:git@github.com:Datadog/dd-sdk-android-gradle-plugin.git"
-                        )
-                    }
-                }
+                configureFlashcatPom(projectName, projectDescription)
             }
+
+            // Configure plugin marker publication for plugins {} DSL resolution
+            // The marker publication is automatically created by java-gradle-plugin
+            // The naming pattern is: {plugin-name}PluginMarkerMaven
+            // Default groupId is the plugin ID (cloud.flashcat.android-gradle-plugin), which is what Gradle looks for
+            publications.findByName("dd-sdk-android-gradle-pluginPluginMarkerMaven")?.let { markerPublication ->
+                check(markerPublication is MavenPublication)
+                
+                // Explicitly set groupId, artifactId, and version to ensure consistency
+                markerPublication.groupId = "cloud.flashcat.android-gradle-plugin"
+                markerPublication.artifactId = "cloud.flashcat.android-gradle-plugin.gradle.plugin"
+                markerPublication.version = MavenConfig.VERSION.name
+                
+                // Reuse common POM configuration
+                markerPublication.configureFlashcatPom(
+                    projectName = "$projectName Plugin Marker",
+                    projectDescription = "Plugin marker for $projectDescription"
+                )
+            } ?: logger.warn("Plugin marker publication not found, marker artifact may not be published")
+        }
+
+        // Sign all publications including pluginMarkerMaven
+        // This is required for Maven Central and ensures marker artifact is also signed
+        publishingExtension.publications.forEach { publication ->
+            signingExtension.sign(publication)
         }
 
         val mavenPublishing = extensions.findByType<MavenPublishBaseExtension>()

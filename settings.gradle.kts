@@ -6,9 +6,10 @@
 
 include(":dd-sdk-android-gradle-plugin")
 
-include(":samples:basic")
-include(":samples:ndk")
-include(":samples:variants")
-include(":samples:variants-kotlin")
-include(":samples:lib-module")
-include(":instrumented")
+// Temporarily commented out to avoid Datadog SDK dependencies
+// include(":samples:basic")
+// include(":samples:ndk")
+// include(":samples:variants")
+// include(":samples:variants-kotlin")
+// include(":samples:lib-module")
+// include(":instrumented")

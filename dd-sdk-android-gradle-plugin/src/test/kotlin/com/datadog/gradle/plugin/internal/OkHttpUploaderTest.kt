@@ -6,7 +6,7 @@
 
 package com.datadog.gradle.plugin.internal
 
-import com.datadog.gradle.plugin.DatadogSite
+import com.datadog.gradle.plugin.FlashcatSite
 import com.datadog.gradle.plugin.RepositoryInfo
 import com.datadog.gradle.plugin.utils.assertj.RecordedRequestAssert.Companion.assertThat
 import com.datadog.gradle.plugin.utils.forge.Configurator
@@ -81,7 +81,7 @@ internal class OkHttpUploaderTest {
     lateinit var fakeRepositoryFileContent: String
 
     @Mock
-    lateinit var mockSite: DatadogSite
+    lateinit var mockSite: FlashcatSite
 
     lateinit var mockWebServer: MockWebServer
 
@@ -336,7 +336,8 @@ internal class OkHttpUploaderTest {
     ) {
         // 407 will actually throw a protocol exception
         // Received HTTP_PROXY_AUTH (407) code while not using proxy
-        assumeTrue(statusCode != 407 && statusCode != 403)
+        // 413 (HTTP_ENTITY_TOO_LARGE) throws MaxSizeExceededException, not IllegalStateException
+        assumeTrue(statusCode != 407 && statusCode != 403 && statusCode != HttpURLConnection.HTTP_ENTITY_TOO_LARGE)
 
         // Given
         mockUploadResponse = MockResponse()
