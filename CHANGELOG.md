@@ -1,3 +1,14 @@
+# 1.2.0 / 2026-06-10 (Flashcat Release)
+
+### New Features
+
+- [FEATURE] Support a custom sourcemap intake endpoint for private (self-hosted) deployments. Configure it via the `sourcemapEndpoint` extension option, the `FLASHCAT_SOURCEMAP_INTAKE_URL` environment variable, or a `sourcemapEndpoint` field in `flashcat-ci.json`. When the value omits the `/sourcemap/upload` path it is appended automatically.
+
+### Fixes
+
+- [FIX] Align `sourcemapEndpoint` resolution precedence with `site`: extension configuration > `flashcat-ci.json` > environment variable.
+- [FIX] When a custom endpoint is configured, skip API key validation against the predefined site host (its validate URL is unknown for a private deployment) and report upload errors against the actual endpoint.
+
 # 1.1.0 / 2026-01-09 (Flashcat Release)
 
 ### breaking change
