@@ -39,6 +39,7 @@ import org.mockito.kotlin.whenever
 import org.mockito.quality.Strictness
 import java.io.File
 import java.net.HttpURLConnection
+import java.net.InetAddress
 import java.util.Locale
 import kotlin.IllegalStateException
 
@@ -114,6 +115,7 @@ internal class OkHttpUploaderTest {
         mockWebServer = MockWebServer()
         mockDispatcher = MockDispatcher()
         mockWebServer.dispatcher = mockDispatcher
+        mockWebServer.start(InetAddress.getByName("127.0.0.1"), 0)
         testedUploader = OkHttpUploader()
 
         fakeUploadUrl = mockWebServer.url("/upload").toString()
@@ -239,6 +241,101 @@ internal class OkHttpUploaderTest {
                 fakeRepositoryFileContent,
                 "application/json"
             )
+    }
+
+    @Test
+    fun `M upload to custom sourcemap endpoint W upload`() {
+        // Given
+        mockUploadResponse = MockResponse()
+            .setResponseCode(HttpURLConnection.HTTP_OK)
+            .setBody("{}")
+        val customUploadUrl = mockWebServer.url("/sourcemap/upload").toString()
+
+        // When
+        testedUploader.upload(
+            mockSite,
+            fakeMappingFileInfo,
+            fakeRepositoryFile,
+            fakeApiKey,
+            fakeIdentifier,
+            fakeRepositoryInfo,
+            useGzip = false,
+            emulateNetworkCall = false,
+            customSourcemapEndpoint = customUploadUrl
+        )
+
+        // Then
+        assertThat(mockWebServer.requestCount).isEqualTo(1)
+        assertThat(dispatchedUploadRequest)
+            .hasMethod("POST")
+            .doesNotHaveHeader("Content-Encoding")
+        assertThat(dispatchedUploadRequest?.path).isEqualTo("/sourcemap/upload")
+    }
+
+    @Test
+    fun `M throw InvalidApiKeyException W upload() { custom endpoint, response 403 }`() {
+        // Given
+        mockUploadResponse = MockResponse()
+            .setResponseCode(HttpURLConnection.HTTP_FORBIDDEN)
+            .setBody("{}")
+        val customUploadUrl = mockWebServer.url("/sourcemap/upload").toString()
+
+        // When
+        assertThrows<OkHttpUploader.InvalidApiKeyException> {
+            testedUploader.upload(
+                mockSite,
+                fakeMappingFileInfo,
+                fakeRepositoryFile,
+                fakeApiKey,
+                fakeIdentifier,
+                fakeRepositoryInfo,
+                useGzip = true,
+                emulateNetworkCall = false,
+                customSourcemapEndpoint = customUploadUrl
+            )
+        }
+
+        // Then no API key validation request is made against the predefined site
+        assertThat(mockWebServer.requestCount).isEqualTo(1)
+        assertThat(dispatchedApiKeyValidationRequest).isNull()
+    }
+
+    @Test
+    fun `M skip API key validation W upload() { custom endpoint, response 400 }`() {
+        // Given
+        mockUploadResponse = MockResponse()
+            .setResponseCode(HttpURLConnection.HTTP_BAD_REQUEST)
+            .setBody("{}")
+        val customUploadUrl = mockWebServer.url("/sourcemap/upload").toString()
+
+        // When
+        assertThrows<IllegalStateException> {
+            testedUploader.upload(
+                mockSite,
+                fakeMappingFileInfo,
+                fakeRepositoryFile,
+                fakeApiKey,
+                fakeIdentifier,
+                fakeRepositoryInfo,
+                useGzip = true,
+                emulateNetworkCall = false,
+                customSourcemapEndpoint = customUploadUrl
+            )
+        }
+
+        // Then the API key validation endpoint of the predefined site is not contacted
+        assertThat(mockWebServer.requestCount).isEqualTo(1)
+        assertThat(dispatchedApiKeyValidationRequest).isNull()
+    }
+
+    @Test
+    fun `M resolve upload endpoint W resolveSourcemapUploadEndpoint()`() {
+        assertThat(OkHttpUploader.resolveSourcemapUploadEndpoint("https://rum.example.com"))
+            .isEqualTo("https://rum.example.com/sourcemap/upload")
+        assertThat(OkHttpUploader.resolveSourcemapUploadEndpoint("https://rum.example.com/sourcemap/upload"))
+            .isEqualTo("https://rum.example.com/sourcemap/upload")
+        assertThat(OkHttpUploader.resolveSourcemapUploadEndpoint(" https://rum.example.com/ "))
+            .isEqualTo("https://rum.example.com/sourcemap/upload")
     }
 
     @Test
@@ -654,7 +751,7 @@ internal class OkHttpUploaderTest {
     inner class MockDispatcher : Dispatcher() {
         override fun dispatch(request: RecordedRequest): MockResponse {
             return when (request.requestUrl?.encodedPath) {
-                "/upload" -> {
+                "/upload", "/sourcemap/upload" -> {
                     dispatchedUploadRequest = request
                     mockUploadResponse
                 }

@@ -94,6 +94,12 @@ abstract class FileUploadTask @Inject constructor(
     var site: String = ""
 
     /**
+     * Custom sourcemap intake endpoint. If empty, the endpoint is resolved from [site].
+     */
+    @get:Input
+    var sourcemapEndpoint: String = ""
+
+    /**
      * The url of the remote repository where the source code was deployed.
      */
     @get:Input
@@ -140,6 +146,7 @@ abstract class FileUploadTask @Inject constructor(
             applyFlashcatCiConfig(it)
         }
         applySiteFromEnvironment()
+        applySourcemapEndpointFromEnvironment()
         validateConfiguration()
 
         check(!(apiKey.contains("\"") || apiKey.contains("'"))) {
@@ -192,7 +199,8 @@ abstract class FileUploadTask @Inject constructor(
                     ),
                     repositories.firstOrNull(),
                     !disableGzipOption.isPresent,
-                    emulateNetworkCall.isPresent
+                    emulateNetworkCall.isPresent,
+                    sourcemapEndpoint.ifBlank { null }
                 )
             } catch (e: Exception) {
                 caughtErrors.add(e)
@@ -225,6 +233,7 @@ abstract class FileUploadTask @Inject constructor(
         this.apiKey = apiKey.value
         apiKeySource = apiKey.source
         site = extensionConfiguration.site ?: ""
+        sourcemapEndpoint = extensionConfiguration.sourcemapEndpoint ?: ""
 
         versionName.set(variant.versionName)
         versionCode.set(variant.versionCode)
@@ -263,13 +272,46 @@ abstract class FileUploadTask @Inject constructor(
         }
     }
 
+    private fun applySourcemapEndpointFromEnvironment() {
+        val environmentEndpoint = System.getenv(FLASHCAT_SOURCEMAP_INTAKE_URL)
+        if (!environmentEndpoint.isNullOrEmpty()) {
+            if (sourcemapEndpoint.isNotEmpty()) {
+                DdAndroidGradlePlugin.LOGGER.info(
+                    "Sourcemap endpoint found as FLASHCAT_SOURCEMAP_INTAKE_URL env variable, but it will be " +
+                        "ignored because one was already provided in extension or Flashcat CI config file."
+                )
+                return
+            }
+            DdAndroidGradlePlugin.LOGGER.info(
+                "Sourcemap endpoint found as FLASHCAT_SOURCEMAP_INTAKE_URL env variable, using it."
+            )
+            sourcemapEndpoint = environmentEndpoint
+        }
+    }
+
     private fun applyFlashcatCiConfig(flashcatCiFile: File) {
         try {
             val config = JSONObject(flashcatCiFile.readText())
             applyApiKeyFromFlashcatCiConfig(config)
+            applySourcemapEndpointFromFlashcatCiConfig(config)
             applySiteFromFlashcatCiConfig(config)
         } catch (e: JSONException) {
             DdAndroidGradlePlugin.LOGGER.error("Failed to parse Flashcat CI config file.", e)
+        }
+    }
+
+    private fun applySourcemapEndpointFromFlashcatCiConfig(config: JSONObject) {
+        val endpoint = config.optString(FLASHCAT_CI_SOURCEMAP_ENDPOINT_PROPERTY, null)
+        if (!endpoint.isNullOrEmpty()) {
+            if (sourcemapEndpoint.isNotEmpty()) {
+                DdAndroidGradlePlugin.LOGGER.info(
+                    "Sourcemap endpoint found in Flashcat CI config file, but it will be ignored," +
+                        " because one was already provided in extension."
+                )
+            } else {
+                DdAndroidGradlePlugin.LOGGER.info("Sourcemap endpoint found in Flashcat CI config file, using it.")
+                sourcemapEndpoint = endpoint
+            }
         }
     }
 
@@ -350,7 +392,9 @@ abstract class FileUploadTask @Inject constructor(
 
         private const val FLASHCAT_CI_API_KEY_PROPERTY = "apiKey"
         private const val FLASHCAT_CI_SITE_PROPERTY = "flashcatSite"
+        private const val FLASHCAT_CI_SOURCEMAP_ENDPOINT_PROPERTY = "sourcemapEndpoint"
         const val FLASHCAT_SITE = "FLASHCAT_SITE"
+        const val FLASHCAT_SOURCEMAP_INTAKE_URL = "FLASHCAT_SOURCEMAP_INTAKE_URL"
 
         internal val LOGGER = Logging.getLogger("DdFileUploadTask")
 

@@ -54,9 +54,11 @@ internal class OkHttpUploader : Uploader {
         identifier: DdAppIdentifier,
         repositoryInfo: RepositoryInfo?,
         useGzip: Boolean,
-        emulateNetworkCall: Boolean
+        emulateNetworkCall: Boolean,
+        customSourcemapEndpoint: String?
     ) {
-        LOGGER.info("Uploading file ${fileInfo.fileName} with tags $identifier (site=${site.intakeHostName}):")
+        val uploadEndpoint = customSourcemapEndpoint?.let(::resolveSourcemapUploadEndpoint) ?: site.uploadEndpoint()
+        LOGGER.info("Uploading file ${fileInfo.fileName} with tags $identifier (endpoint=$uploadEndpoint):")
         if (fileInfo.extraAttributes.isNotEmpty()) {
             LOGGER.info("  extra attributes: ${fileInfo.extraAttributes}")
         }
@@ -64,7 +66,7 @@ internal class OkHttpUploader : Uploader {
         val body = createBody(identifier, fileInfo, repositoryFile, repositoryInfo)
 
         val requestBuilder = Request.Builder()
-            .url(site.uploadEndpoint())
+            .url(uploadEndpoint)
             .header(HEADER_EVP_ORIGIN, "dd-sdk-android-gradle-plugin")
             .header(HEADER_EVP_ORIGIN_VERSION, VERSION)
             .header(HEADER_API_KEY, apiKey)
@@ -97,7 +99,7 @@ internal class OkHttpUploader : Uploader {
             null
         }
 
-        handleResponse(response, site, apiKey, identifier)
+        handleResponse(response, site, apiKey, identifier, uploadEndpoint, customSourcemapEndpoint != null)
     }
 
     // endregion
@@ -158,7 +160,9 @@ internal class OkHttpUploader : Uploader {
         response: Response?,
         site: FlashcatSite,
         apiKey: String,
-        identifier: DdAppIdentifier
+        identifier: DdAppIdentifier,
+        uploadEndpoint: String,
+        isCustomEndpoint: Boolean
     ) {
         val statusCode = response?.code
         when {
@@ -173,7 +177,7 @@ internal class OkHttpUploader : Uploader {
             )
             statusCode == HttpURLConnection.HTTP_FORBIDDEN -> throw InvalidApiKeyException(
                 identifier,
-                site
+                uploadEndpoint
             )
             statusCode == HttpURLConnection.HTTP_CLIENT_TIMEOUT -> throw RuntimeException(
                 "Unable to upload mapping file with tags $identifier because of a request timeout; " +
@@ -184,10 +188,13 @@ internal class OkHttpUploader : Uploader {
                     MAX_MAP_SIZE_EXCEEDED_ERROR.format(Locale.US, identifier)
                 )
             statusCode >= HttpURLConnection.HTTP_BAD_REQUEST -> {
+                // The API key validation endpoint is only known for predefined sites, so skip the
+                // check when uploading to a custom endpoint (e.g. a private deployment).
                 if (statusCode == HttpURLConnection.HTTP_BAD_REQUEST &&
+                    !isCustomEndpoint &&
                     validateApiKey(site, apiKey) == false
                 ) {
-                    throw InvalidApiKeyException(identifier, site)
+                    throw InvalidApiKeyException(identifier, uploadEndpoint)
                 }
                 response.body.use {
                     throw IllegalStateException(
@@ -236,9 +243,9 @@ internal class OkHttpUploader : Uploader {
 
     internal inner class InvalidApiKeyException(
         uploadIdentifier: DdAppIdentifier,
-        site: FlashcatSite
+        endpoint: String
     ) : RuntimeException(
-        "Unable to upload mapping file for $uploadIdentifier (site=${site.intakeHostName}); " +
+        "Unable to upload mapping file for $uploadIdentifier (endpoint=$endpoint); " +
             "verify that you're using a valid API Key"
     )
 
@@ -295,5 +302,14 @@ internal class OkHttpUploader : Uploader {
             HttpURLConnection.HTTP_CREATED,
             HttpURLConnection.HTTP_ACCEPTED
         )
+
+        internal fun resolveSourcemapUploadEndpoint(endpoint: String): String {
+            val normalized = endpoint.trim().trimEnd('/')
+            return if (normalized.endsWith("/sourcemap/upload")) {
+                normalized
+            } else {
+                "$normalized/sourcemap/upload"
+            }
+        }
     }
 }

@@ -127,11 +127,13 @@ internal class MappingFileUploadTaskTest {
         testedTask.buildId.set(fakeBuildId)
         testedTask.mappingFile.set(fakeProject.objects.fileProperty().fileValue(File(tempDir, fakeMappingFileName)))
         setEnv(FileUploadTask.FLASHCAT_SITE, "")
+        setEnv(FileUploadTask.FLASHCAT_SOURCEMAP_INTAKE_URL, "")
     }
 
     @AfterEach
     fun `tear down`() {
         removeEnv(FileUploadTask.FLASHCAT_SITE)
+        removeEnv(FileUploadTask.FLASHCAT_SOURCEMAP_INTAKE_URL)
     }
 
     @Test
@@ -175,6 +177,45 @@ internal class MappingFileUploadTaskTest {
             .isEqualTo(
                 "{\"data\":[" + fakeRepoInfo.toJson().toString(0) + "],\"version\":1}"
             )
+    }
+
+    @Test
+    fun `M upload file to custom sourcemap endpoint W applyTask()`(
+        @StringForgery(regex = "https://[a-z]{8}\\.example\\.com") fakeSourcemapEndpoint: String
+    ) {
+        // Given
+        val fakeMappingFile = File(tempDir, fakeMappingFileName)
+        fakeMappingFile.writeText(fakeMappingFileContent)
+        testedTask.mappingFile.set(fakeProject.objects.fileProperty().fileValue(File(fakeMappingFile.path)))
+        testedTask.sourcemapEndpoint = fakeSourcemapEndpoint
+
+        // When
+        testedTask.applyTask()
+
+        // Then
+        verify(mockUploader).upload(
+            fakeSite,
+            Uploader.UploadFileInfo(
+                fileKey = MappingFileUploadTask.KEY_JVM_MAPPING_FILE,
+                file = fakeMappingFile,
+                encoding = MappingFileUploadTask.MEDIA_TYPE_TXT,
+                fileType = MappingFileUploadTask.TYPE_JVM_MAPPING_FILE,
+                fileName = MappingFileUploadTask.KEY_JVM_MAPPING_FILE_NAME
+            ),
+            null,
+            fakeApiKey.value,
+            DdAppIdentifier(
+                serviceName = fakeService,
+                version = fakeVersion,
+                versionCode = fakeVersionCode,
+                variant = fakeVariant,
+                buildId = fakeBuildId
+            ),
+            null,
+            useGzip = true,
+            emulateNetworkCall = false,
+            customSourcemapEndpoint = fakeSourcemapEndpoint
+        )
     }
 
     @Test
@@ -222,7 +263,8 @@ internal class MappingFileUploadTaskTest {
                 ),
                 eq(fakeRepoInfo),
                 useGzip = eq(true),
-                emulateNetworkCall = eq(false)
+                emulateNetworkCall = eq(false),
+                customSourcemapEndpoint = eq(null)
             )
             assertThat(lastValue.file).hasSameTextualContentAs(
                 fileFromResourcesPath("mapping-with-aliases.txt")
@@ -274,7 +316,8 @@ internal class MappingFileUploadTaskTest {
                 ),
                 eq(fakeRepoInfo),
                 useGzip = eq(true),
-                emulateNetworkCall = eq(false)
+                emulateNetworkCall = eq(false),
+                customSourcemapEndpoint = eq(null)
             )
             assertThat(lastValue.file.readLines()).isEqualTo(expectedLines)
         }
@@ -330,7 +373,8 @@ internal class MappingFileUploadTaskTest {
                 ),
                 eq(fakeRepoInfo),
                 useGzip = eq(true),
-                emulateNetworkCall = eq(false)
+                emulateNetworkCall = eq(false),
+                customSourcemapEndpoint = eq(null)
             )
             assertThat(lastValue.file.readLines()).isEqualTo(expectedLines)
         }
@@ -784,6 +828,45 @@ internal class MappingFileUploadTaskTest {
         assertThat(testedTask.apiKey).isEqualTo(fakeApiKey.value)
         assertThat(testedTask.apiKeySource).isEqualTo(fakeApiKey.source)
         assertThat(testedTask.site).isEqualTo(fakeSite.name)
+    }
+
+    @Test
+    fun `M read sourcemap endpoint from environment variable W applyTask() { endpoint is not set }`(
+        @StringForgery(regex = "https://[a-z]{8}\\.example\\.com") fakeSourcemapEndpoint: String
+    ) {
+        // Given
+        setEnv(FileUploadTask.FLASHCAT_SOURCEMAP_INTAKE_URL, fakeSourcemapEndpoint)
+        testedTask.sourcemapEndpoint = ""
+
+        // When
+        testedTask.applyTask()
+
+        // Then
+        assertThat(testedTask.sourcemapEndpoint).isEqualTo(fakeSourcemapEndpoint)
+    }
+
+    @Test
+    fun `M prefer sourcemap endpoint from CI config W applyTask() { endpoint exists in env variable }`(
+        @StringForgery(regex = "https://[a-z]{8}\\.example\\.com") fakeEnvironmentEndpoint: String,
+        @StringForgery(regex = "https://[a-z]{8}\\.example\\.org") fakeCiEndpoint: String
+    ) {
+        // Given
+        val fakeFlashcatCiFile = File(tempDir, "flashcat-ci.json")
+        fakeFlashcatCiFile.writeText(
+            JSONObject().apply {
+                put("sourcemapEndpoint", fakeCiEndpoint)
+            }.toString()
+        )
+
+        setEnv(FileUploadTask.FLASHCAT_SOURCEMAP_INTAKE_URL, fakeEnvironmentEndpoint)
+        testedTask.flashcatCiFile = fakeFlashcatCiFile
+        testedTask.sourcemapEndpoint = ""
+
+        // When
+        testedTask.applyTask()
+
+        // Then
+        assertThat(testedTask.sourcemapEndpoint).isEqualTo(fakeCiEndpoint)
     }
 
     @Test
