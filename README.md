@@ -59,6 +59,7 @@ flashcat {
     versionName = "1.3.0" // Optional, by default it is read from your Android plugin configuration's version name
     serviceName = "my-service" // Optional, by default it is read from your Android plugin configuration's package name
     site = "CN" // Optional, can be "CN" or "STAGING" (check `FlashcatSite` documentation for the full list). Default is "CN"
+    sourcemapEndpoint = "https://rum.example.com" // Optional, custom sourcemap intake endpoint for private deployments. `/sourcemap/upload` is appended if omitted.
     checkProjectDependencies = "warn" // Optional, can be "warn", "fail" or "none". Default is "fail". Will check if Flashcat SDK is in the project dependencies.
     mappingFilePath = "path/to/mapping.txt" // Optional, provides a custom mapping file path. Default is "build/outputs/mapping/{variant}/mapping.txt".
     nonDefaultObfuscation = false // Optional, to be used if a 3rd-party obfuscation tool is used. Default is false.
@@ -74,9 +75,11 @@ If you're using variants, you can set a custom configuration per variant using t
 ```groovy
 flashcat {
     site = "CN" // Variants with no configurations will use this as default
+    sourcemapEndpoint = "https://rum.example.com" // Variants with no configurations will use this as default
     variants {
         fr {
             site = "STAGING"
+            sourcemapEndpoint = "https://rum-fr.example.com/sourcemap/upload"
             mappingFilePath = "path/to/fr/mapping.txt"
         }
     }
@@ -88,9 +91,11 @@ flashcat {
 ```kotlin
 flashcat {
     site = "CN" // Variants with no configurations will use this as default
+    sourcemapEndpoint = "https://rum.example.com" // Variants with no configurations will use this as default
     variants {
         register("fr") {
             site = "STAGING"
+            sourcemapEndpoint = "https://rum-fr.example.com/sourcemap/upload"
             mappingFilePath = "path/to/fr/mapping.txt"
         }
     }
@@ -121,6 +126,9 @@ export FLASHCAT_API_KEY="your-flashcat-api-key"
 
 # Site (optional)
 export FLASHCAT_SITE="ci.flashcat.cloud"
+
+# Sourcemap intake endpoint (optional, useful for private deployments)
+export FLASHCAT_SOURCEMAP_INTAKE_URL="https://rum.example.com"
 ```
 
 ### Configuration File (flashcat-ci.json)
@@ -130,7 +138,8 @@ You can also use a `flashcat-ci.json` file in your project root for configuratio
 ```json
 {
   "apiKey": "your-flashcat-api-key",
-  "flashcatSite": "ci.flashcat.cloud"
+  "flashcatSite": "ci.flashcat.cloud",
+  "sourcemapEndpoint": "https://rum.example.com"
 }
 ```
 

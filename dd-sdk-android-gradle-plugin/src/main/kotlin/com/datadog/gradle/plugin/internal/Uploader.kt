@@ -57,6 +57,7 @@ internal interface Uploader {
         identifier: DdAppIdentifier,
         repositoryInfo: RepositoryInfo?,
         useGzip: Boolean = true,
-        emulateNetworkCall: Boolean = false
+        emulateNetworkCall: Boolean = false,
+        customSourcemapEndpoint: String? = null
     )
 }

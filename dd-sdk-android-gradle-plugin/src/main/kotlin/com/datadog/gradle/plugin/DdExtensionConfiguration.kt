@@ -34,6 +34,12 @@ open class DdExtensionConfiguration(
     var site: String? = null
 
     /**
+     * Custom sourcemap intake endpoint. If the value doesn't end with `/sourcemap/upload`,
+     * the upload path will be appended automatically.
+     */
+    var sourcemapEndpoint: String? = null
+
+    /**
      * The url of the remote repository where the source code was deployed. If not provided this
      * value will be resolved from your current GIT configuration during the task execution time.
      */
@@ -122,6 +128,7 @@ open class DdExtensionConfiguration(
         config.versionName?.let { versionName = it }
         config.serviceName?.let { serviceName = it }
         config.site?.let { site = it }
+        config.sourcemapEndpoint?.let { sourcemapEndpoint = it }
         config.remoteRepositoryUrl?.let { remoteRepositoryUrl = it }
         config.checkProjectDependencies?.let { checkProjectDependencies = it }
         config.mappingFilePath?.let { mappingFilePath = it }

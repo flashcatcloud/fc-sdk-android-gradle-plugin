@@ -339,6 +339,7 @@ class DdAndroidGradlePlugin @Inject constructor(
         uploadTask.sourceSetRoots.set(variant.collectJavaAndKotlinSourceDirectories())
 
         uploadTask.site = extensionConfiguration.site ?: ""
+        uploadTask.sourcemapEndpoint = extensionConfiguration.sourcemapEndpoint ?: ""
         if (extensionConfiguration.versionName != null) {
             uploadTask.versionName.set(extensionConfiguration.versionName)
         } else {
