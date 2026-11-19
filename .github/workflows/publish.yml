@@ -50,15 +50,30 @@ jobs:
       - name: Determine version type
         id: version
         run: |
-          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
-            echo "type=release" >> $GITHUB_OUTPUT
-            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-            echo "Publishing release version (from tag: ${{ github.ref_name }})"
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            {
+              echo "type=release"
+              echo "tag=$GITHUB_REF_NAME"
+              echo "version=${GITHUB_REF_NAME#v}"
+            } >> "$GITHUB_OUTPUT"
+            echo "Publishing release version (from tag: $GITHUB_REF_NAME)"
           else
-            echo "type=snapshot" >> $GITHUB_OUTPUT
-            echo "tag=snapshot" >> $GITHUB_OUTPUT
-            echo "Publishing snapshot version (from branch: ${{ github.ref_name }})"
+            {
+              echo "type=snapshot"
+              echo "tag=snapshot"
+            } >> "$GITHUB_OUTPUT"
+            echo "Publishing snapshot version (from branch: $GITHUB_REF_NAME)"
           fi
+
+      - name: Extract release notes
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          # Only the Flashcat releases are ours: the upstream history below the "(Datadog Original)"
+          # marker reuses version numbers (it has its own 1.2.0), so cut it off before looking up a version.
+          awk '/^# .*\(Datadog Original\)$/ { found=1; exit } { print } END { if (!found) exit 1 }' CHANGELOG.md > release-changelog.md
+          bash .github/scripts/extract-release-notes.sh --changelog release-changelog.md --version "$VERSION" --level 1 --output release-notes.md
 
       - name: Build and test plugin
         run: ./gradlew :dd-sdk-android-gradle-plugin:build --stacktrace --no-daemon
@@ -80,18 +95,18 @@ jobs:
             -PmavenCentralPassword="${{ secrets.MAVEN_CENTRAL_PASSWORD }}" \
             --no-daemon --stacktrace --info
 
-      # 创建 GitHub Release（仅正式版）
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v1
-        with:
-          generate_release_notes: true
-          draft: false
-          prerelease: false
-          files: |
-            dd-sdk-android-gradle-plugin/build/libs/*.jar
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            gh release edit "$TAG" --notes-file release-notes.md
+          else
+            gh release create "$TAG" --title "$TAG" --notes-file release-notes.md --verify-tag
+          fi
+          gh release upload "$TAG" dd-sdk-android-gradle-plugin/build/libs/*.jar --clobber
 
       - name: Notify on success
         if: success()
